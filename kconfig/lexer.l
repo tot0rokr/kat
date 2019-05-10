@@ -1,4 +1,3 @@
-
 %{
 #include <string.h>
 #include <stdlib.h>
@@ -23,14 +22,14 @@ char *text;
 			}
 
 ={1}			return ASSIGNMENT;	/* Assignment */
-y			return V_YES;
-m			return V_MODULE;
+y{1}			return V_YES;
+m{1}			return V_MODULE;
 \"[^#\n]*\"		{	/* Value String */
 				text = (char *)xmalloc(strlen(yytext) + 1);
 				strncpy(text, yytext, strlen(yytext));
 				return V_STRING;
 			}
-0x[0-9A-Za-z]+	{	/* Value Hexa Decimal */
+0x[0-9A-Fa-f]+	{	/* Value Hexa Decimal */
 				yylval = strtoull(yytext, NULL, 16);
 				return V_HEXA;
 			}

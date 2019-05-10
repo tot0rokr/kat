@@ -1,3 +1,6 @@
+#ifndef __LKC_H__
+#define __LKC_H__
+
 #include <stdio.h>
 
 /* util.c */
@@ -21,3 +24,5 @@ void str_free(struct gstr *gs);
 void str_append(struct gstr *gs, const char *s);
 void str_printf(struct gstr *gs, const char *fmt, ...);
 const char *str_get(struct gstr *gs);
+
+#endif

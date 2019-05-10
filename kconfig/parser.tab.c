@@ -65,35 +65,20 @@
 #line 10 "parser.y" /* yacc.c:339  */
 
 
-#include <stdbool.h>
 #include "../lib/lkc.h"
+#include "../lib/config_symbol.h"
 
 void yyerror(char *);
 int yylex(void);
 
-enum types {
-	T_YES,
-	T_MODULE,
-	T_STRING,
-	T_HEXA,
-	T_DECIMAL,
-	T_COUNT
-};
+void print_cs_node(struct cs_node *);
+void print_all_node();
 
-struct config_symbol_table {
-	char *name;
-	enum types type;
-	union {
-		unsigned long long int ull;
-		char *str;
-	} data;
-};
+struct cs_node *temp;
+extern char *symbol_name; /* config symbol name */
+extern char *text; /* string value */
 
-struct config_symbol_table *temp;
-extern char *symbol_name;
-extern char *text;
-
-#line 97 "parser.tab.c" /* yacc.c:339  */
+#line 82 "parser.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -155,7 +140,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 159 "parser.tab.c" /* yacc.c:358  */
+#line 144 "parser.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -402,11 +387,11 @@ union yyalloc
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  11
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  5
+#define YYNNTS  4
 /* YYNRULES -- Number of rules.  */
 #define YYNRULES  10
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  13
+#define YYNSTATES  12
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -453,8 +438,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    43,    43,    44,    49,    79,    83,    91,    98,   104,
-     109
+       0,    28,    28,    29,    33,    38,    83,    88,    93,    98,
+     102
 };
 #endif
 
@@ -465,7 +450,7 @@ static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "CONFIG_SYMBOL", "ASSIGNMENT", "V_HEXA",
   "V_DECIMAL", "V_STRING", "V_YES", "V_MODULE", "E_INVALCHAR", "$accept",
-  "program", "start", "ass", "val", YY_NULLPTR
+  "program", "start", "val", YY_NULLPTR
 };
 #endif
 
@@ -494,7 +479,7 @@ static const yytype_uint16 yytoknum[] =
 static const yytype_int8 yypact[] =
 {
       -6,     5,    -6,     2,    -6,    -5,    -6,    -6,    -6,    -6,
-      -6,    -6,    -6
+      -6,    -6
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -502,20 +487,20 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       3,     0,     1,     0,     2,     0,     4,     7,     8,     6,
-      10,     9,     5
+       3,     0,     1,     5,     2,     0,     7,     8,     6,    10,
+       9,     4
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -6,    -6,    -6,    -6,    -6
+      -6,    -6,    -6,    -6
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,     4,     6,    12
+      -1,     1,     4,    11
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -523,7 +508,7 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-       7,     8,     9,    10,    11,     2,     5,     0,     3
+       6,     7,     8,     9,    10,     2,     5,     0,     3
 };
 
 static const yytype_int8 yycheck[] =
@@ -535,21 +520,21 @@ static const yytype_int8 yycheck[] =
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    12,     0,     3,    13,     4,    14,     5,     6,     7,
-       8,     9,    15
+       0,    12,     0,     3,    13,     4,     5,     6,     7,     8,
+       9,    14
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    11,    12,    12,    13,    14,    15,    15,    15,    15,
-      15
+       0,    11,    12,    12,    13,    13,    14,    14,    14,    14,
+      14
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     2,     0,     2,     2,     1,     1,     1,     1,
+       0,     2,     2,     0,     3,     1,     1,     1,     1,     1,
        1
 };
 
@@ -1227,93 +1212,76 @@ yyreduce:
   switch (yyn)
     {
         case 4:
-#line 49 "parser.y" /* yacc.c:1646  */
-    { 
-		/* temp = $2; */
-		/* temp->name = (char *)$1; */
+#line 33 "parser.y" /* yacc.c:1646  */
+    {
 		temp->name = symbol_name;
-		switch (temp->type) {
-		case T_STRING:
-			/* printf("config = %s\n", temp->data.str); */
-			printf("%s = %s\n", temp->name, temp->data.str);
-			break;
-		case T_HEXA:
-			/* printf("config = 0x%llX\n", temp->data.ull); */
-			printf("%s = 0x%llX\n", temp->name, temp->data.ull);
-			break;
-		case T_DECIMAL:
-			/* printf("config = %llu\n", temp->data.ull); */
-			printf("%s = %llu\n", temp->name, temp->data.ull);
-			break;
-		case T_YES:
-			/* printf("config = y\n"); */
-			printf("%s = y\n", temp->name);
-			break;
-		case T_MODULE:
-			/* printf("config = m\n"); */
-			printf("%s = m\n", temp->name);
-			break;
-		}
+		insert_cs_node(temp);
+		print_cs_node(temp);
 	}
-#line 1259 "parser.tab.c" /* yacc.c:1646  */
+#line 1222 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 5:
+#line 38 "parser.y" /* yacc.c:1646  */
+    {
+		if (search_cs_node(symbol_name, temp) >= 0)
+			print_cs_node(temp);
+		else
+			printf("no declaration\n");
+	}
+#line 1233 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
 #line 83 "parser.y" /* yacc.c:1646  */
     {
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				/* temp->data.str = (char *)$1; */
-				temp->data.str = text;
-				temp->type = T_STRING;
-				/* $$ = temp; */
-			}
-#line 1271 "parser.tab.c" /* yacc.c:1646  */
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->data.str = text;
+		temp->type = T_STRING;
+	}
+#line 1243 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 91 "parser.y" /* yacc.c:1646  */
+#line 88 "parser.y" /* yacc.c:1646  */
     {
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				temp->data.ull = (yyvsp[0]);
-				temp->type = T_HEXA;
-				/* $$ = temp; */
-			}
-#line 1282 "parser.tab.c" /* yacc.c:1646  */
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->data.ull = (yyvsp[0]);
+		temp->type = T_HEXA;
+	}
+#line 1253 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 98 "parser.y" /* yacc.c:1646  */
+#line 93 "parser.y" /* yacc.c:1646  */
     {
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				temp->data.ull = (yyvsp[0]);
-				temp->type = T_DECIMAL;
-				/* $$ = temp; */
-			}
-#line 1293 "parser.tab.c" /* yacc.c:1646  */
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->data.ull = (yyvsp[0]);
+		temp->type = T_DECIMAL;
+	}
+#line 1263 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 104 "parser.y" /* yacc.c:1646  */
+#line 98 "parser.y" /* yacc.c:1646  */
     { 
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				temp->type = T_MODULE;
-				/* $$ = temp; */
-			}
-#line 1303 "parser.tab.c" /* yacc.c:1646  */
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->type = T_MODULE;
+	}
+#line 1272 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 109 "parser.y" /* yacc.c:1646  */
+#line 102 "parser.y" /* yacc.c:1646  */
     { 
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				temp->type = T_YES;
-				/* $$ = temp; */
-			}
-#line 1313 "parser.tab.c" /* yacc.c:1646  */
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->type = T_YES;
+	}
+#line 1281 "parser.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1317 "parser.tab.c" /* yacc.c:1646  */
+#line 1285 "parser.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1541,7 +1509,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 116 "parser.y" /* yacc.c:1906  */
+#line 108 "parser.y" /* yacc.c:1906  */
 
 void yyerror(char *s)
 {
@@ -1555,3 +1523,33 @@ int main(void)
   return 0;
 }
 
+void print_all_node()
+{
+	int i;
+	printf("nr_cs: %d\n", nr_cs);
+	for (i = 0; i < nr_cs; i++) {
+		printf("%d: ", i);
+		print_cs_node(cs_table[i]);
+	}
+}
+
+void print_cs_node(struct cs_node *node)
+{
+		switch (node->type) {
+		case T_STRING:
+			printf("%s = %s\n", node->name, node->data.str);
+			break;
+		case T_HEXA:
+			printf("%s = 0x%llX\n", node->name, node->data.ull);
+			break;
+		case T_DECIMAL:
+			printf("%s = %llu\n", node->name, node->data.ull);
+			break;
+		case T_YES:
+			printf("%s = y\n", node->name);
+			break;
+		case T_MODULE:
+			printf("%s = m\n", node->name);
+			break;
+		}
+}

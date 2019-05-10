@@ -9,110 +9,102 @@
 
 %{
 
-#include <stdbool.h>
 #include "../lib/lkc.h"
+#include "../lib/config_symbol.h"
 
 void yyerror(char *);
 int yylex(void);
 
-enum types {
-	T_YES,
-	T_MODULE,
-	T_STRING,
-	T_HEXA,
-	T_DECIMAL,
-	T_COUNT
-};
+void print_cs_node(struct cs_node *);
+void print_all_node();
 
-struct config_symbol_table {
-	char *name;
-	enum types type;
-	union {
-		unsigned long long int ull;
-		char *str;
-	} data;
-};
-
-struct config_symbol_table *temp;
-extern char *symbol_name;
-extern char *text;
+struct cs_node *temp;
+extern char *symbol_name; /* config symbol name */
+extern char *text; /* string value */
 %}
 
 %%
 program:
-	 program start
-	 |
-	 ;
+	program start
+	|
+	;
 
 start:
-	/* CONFIG_SYMBOL {  } */
-	CONFIG_SYMBOL ass { 
-		/* temp = $2; */
-		/* temp->name = (char *)$1; */
+	CONFIG_SYMBOL ASSIGNMENT val	{
 		temp->name = symbol_name;
-		switch (temp->type) {
-		case T_STRING:
-			/* printf("config = %s\n", temp->data.str); */
-			printf("%s = %s\n", temp->name, temp->data.str);
-			break;
-		case T_HEXA:
-			/* printf("config = 0x%llX\n", temp->data.ull); */
-			printf("%s = 0x%llX\n", temp->name, temp->data.ull);
-			break;
-		case T_DECIMAL:
-			/* printf("config = %llu\n", temp->data.ull); */
-			printf("%s = %llu\n", temp->name, temp->data.ull);
-			break;
-		case T_YES:
-			/* printf("config = y\n"); */
-			printf("%s = y\n", temp->name);
-			break;
-		case T_MODULE:
-			/* printf("config = m\n"); */
-			printf("%s = m\n", temp->name);
-			break;
-		}
+		insert_cs_node(temp);
+		print_cs_node(temp);
 	}
-	/* { printf("config = %llu\n", $2); }*/
+	| CONFIG_SYMBOL {
+		if (search_cs_node(symbol_name, temp) >= 0)
+			print_cs_node(temp);
+		else
+			printf("no declaration\n");
+	}
 	;
 
+
+
 ass:
-	ASSIGNMENT val 
-	/* ASSIGNMENT val { $$ = $2; } */
+	ASSIGNMENT val	
+
+	/* CONFIG_SYMBOL ass */
+	/*
+	 * CONFIG_SYMBOL ass	{ 
+	 *       temp->name = symbol_name;
+	 *       insert_cs_node(temp);
+	 *       print_cs_node(temp);
+	 * }
+	 * | CONFIG_SYMBOL	{
+	 *       if (search_cs_node(symbol_name, temp) >= 0)
+	 *             print_cs_node(temp);
+	 *       else
+	 *             printf("no declaration\n");
+	 * }
+	 */
 	;
+
+/*
+ * ass:
+ *       ASSIGNMENT val {
+ *             temp->name = symbol_name;
+ *             insert_cs_node(temp);
+ *             print_cs_node(temp);
+ *       }
+ *       |
+ *       {
+ *             if (search_cs_node(symbol_name, temp) >= 0)
+ *                   print_cs_node(temp);
+ *             else
+ *                   printf("no declaration\n");
+ *       }
+ *       ;
+ */
 
 val:
 	V_STRING	{
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				/* temp->data.str = (char *)$1; */
-				temp->data.str = text;
-				temp->type = T_STRING;
-				/* $$ = temp; */
-			}
-	/* | V_HEXA { printf("heax\n"); } */
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->data.str = text;
+		temp->type = T_STRING;
+	}
 	| V_HEXA	{
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				temp->data.ull = $1;
-				temp->type = T_HEXA;
-				/* $$ = temp; */
-			}
-	/* | V_DECIMAL { printf("decimal\n"); } */
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->data.ull = $1;
+		temp->type = T_HEXA;
+	}
 	| V_DECIMAL {
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				temp->data.ull = $1;
-				temp->type = T_DECIMAL;
-				/* $$ = temp; */
-			}
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->data.ull = $1;
+		temp->type = T_DECIMAL;
+	}
 	| V_MODULE	{ 
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				temp->type = T_MODULE;
-				/* $$ = temp; */
-			}
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->type = T_MODULE;
+	}
 	| V_YES	{ 
-				temp = (struct config_symbol_table *)xmalloc(sizeof(struct config_symbol_table));
-				temp->type = T_YES;
-				/* $$ = temp; */
-			}
+		temp = (struct cs_node *)xmalloc(sizeof(struct cs_node));
+		temp->type = T_YES;
+	}
 	;
 
 %%
@@ -128,3 +120,33 @@ int main(void)
   return 0;
 }
 
+void print_all_node()
+{
+	int i;
+	printf("nr_cs: %d\n", nr_cs);
+	for (i = 0; i < nr_cs; i++) {
+		printf("%d: ", i);
+		print_cs_node(cs_table[i]);
+	}
+}
+
+void print_cs_node(struct cs_node *node)
+{
+		switch (node->type) {
+		case T_STRING:
+			printf("%s = %s\n", node->name, node->data.str);
+			break;
+		case T_HEXA:
+			printf("%s = 0x%llX\n", node->name, node->data.ull);
+			break;
+		case T_DECIMAL:
+			printf("%s = %llu\n", node->name, node->data.ull);
+			break;
+		case T_YES:
+			printf("%s = y\n", node->name);
+			break;
+		case T_MODULE:
+			printf("%s = m\n", node->name);
+			break;
+		}
+}
