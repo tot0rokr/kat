@@ -30,17 +30,27 @@ program:
 	;
 
 start:
-	CONFIG_SYMBOL ASSIGNMENT val	{
+	CONFIG_SYMBOL ass	{
 		temp->name = symbol_name;
 		insert_cs_node(temp);
 		print_cs_node(temp);
+		/* print_all_node(); */
 	}
-	| CONFIG_SYMBOL {
+	| E_INVALCHAR {
 		if (search_cs_node(symbol_name, temp) >= 0)
-			print_cs_node(temp);
+			print_all_node();
+			/* print_cs_node(temp); */
 		else
 			printf("no declaration\n");
 	}
+	/*
+	 * | CONFIG_SYMBOL {
+	 *       if (search_cs_node(symbol_name, temp) >= 0)
+	 *             print_cs_node(temp);
+	 *       else
+	 *             printf("no declaration\n");
+	 * }
+	 */
 	;
 
 
