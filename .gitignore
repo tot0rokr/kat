@@ -129,3 +129,13 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/python
+#
+
+
+
+
+
+
+# My project
+
+!/kat/lib
