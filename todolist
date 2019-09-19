@@ -1,3 +1,50 @@
 cparser
 	space - comment singleline
-		- commetn multiline
+		- comment multiline
+		- 
+
+
+      T_NEWLINE
+		- comment 
+      T_COMMENT_SINGL_LINE
+      T_COMMENT_MULTI_LINE_OPEN
+      T_COMMENT_MULTI_LINE_CLOSE
+      T_PREPROCESS
+      T_DATATYPE
+      T_KEYWORD
+      T_STRING
+      T_CHARACTOR
+      T_FLOATING
+      T_INTEGER
+      T_OPERATOR
+      T_COMMA
+      T_IDENTIFIER
+      T_PARENTHESIS_OPEN
+      T_PARENTHESIS_CLOSE
+      T_BRACE_OPEN
+      T_BRACE_CLOSE
+      T_BRACKET_OPEN
+      T_BRACKET_CLOSE
+      T_SEMICOLON
+      T_BACKSLASH
+      T_ETC
+
+
+
+처음 데이터베이스 생성시에 call tag는 생성하지 않고, definition tag만 생성하고
+call indentifier가 존재하는 file만 definition tag에 리스트로 저장한다.
+그 후 어떤 tag에 대한 call tag를 보고 싶을 시에는 해당 identifier가 존재하는
+file들에 대해서 identifier tag만 parsing해서 tmp tag list를 생성.
+flugin이 종료되면 해당 tmp tag들은 사라짐. (검색한지 오래된 tag도 사라짐.)
+
+file tag는 file 전체를 가르키는 scope를 가리킴(base scope)
+
+scope tag는 해당 scope를 감싸는 scope를 가르키며
+base scope tag는 file tag를 가르킴
+
+처음 database 생성시에는 file tag, scope tag, definition tag와 preprocess tag만 생성한다.
+
+
+
+
+	
