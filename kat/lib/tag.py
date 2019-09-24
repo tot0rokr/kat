@@ -11,6 +11,13 @@ class Tag:
         self.type = type                 # what it is used type in code
         self.definition = defi             # DefinitionTag()  / definition tag
 
+    def __repr__(self):
+        return repr(self.name)
+
+class DefineTag(Tag):
+    def __init__(self, path, line, name, scope, type=None):
+
+
 
 class DefinitionTag(Tag):
     def __init__(self, path, line, name, scope, type=None):

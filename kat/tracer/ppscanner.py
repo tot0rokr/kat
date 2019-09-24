@@ -231,17 +231,17 @@ def scan(rawdata):
             lines += line
         #  print(lines)
 
-        matchedString = preprocess.match(lines)
-        lines = ""
-        if matchedString is None:
+        matchedString = preprocess.match(lines) # make matchedString as preprocess
+                                                # about lines
+        lines = ""                              # re-initialize 0
+        if matchedString is None:               # if it is not preprocess
+                                                # go to next line
             continue
-
 
         key = (matchedString.group(2), matchedString.group(3))
         print (str(line_nr) + " : " + str(key))
         if key[0] == "include":
-            include = re.compile('[ \t]?([<"])(.*)[>"]')
-            matchedString = include.match(key[1])
+            matchedString = re.compile('[ \t]?([<"])(.*)[>"]').search(key[1])
 
             if matchedString.group(1) == "<":
                 token = Token(line=lines, line_nr=line_nr
@@ -252,8 +252,6 @@ def scan(rawdata):
                         , substance=matchedString.group(2), kind="T_INCLUDE_USR_H")
                 tokens.append(token)
             continue
-
-
         elif key[0] == "if":
             pass
             # [^:A-Za-z0-9_ \t\(\)&\|\*\!(/*)(*/)><=\.\-,]
@@ -274,7 +272,8 @@ def scan(rawdata):
             tokens.append(token)
             continue
         elif key[0] == "define":
-            pass
+            if key[1][0] == '(':
+                key[0] = "definefunc"
         elif key[0] == "error":
             pass
         elif key[0] == "undef":

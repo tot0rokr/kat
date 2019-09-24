@@ -5,5 +5,5 @@ class Token:
         self.line_nr = line_nr
         self.substance = substance
 
-    def __call__(self):
-        return self.kind
+    #  def __call__(self):
+        #  return self.kind

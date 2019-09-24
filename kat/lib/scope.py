@@ -6,6 +6,7 @@ class Scope:
                                     # [0, 0] is all scope in file
         self.information = "None"
         self.container = scope
+        self.include = []
 
     def __call__(self):
         return {path:self.path(), start:self.line[0], end:self.line[1]}
