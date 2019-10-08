@@ -1,0 +1,40 @@
+import vim
+import kat.katconfig as kc
+from kat.ui.tabpage import *
+
+
+def taglist(tab, buf):
+    pass
+
+def filetree(tab, buf):
+    del buf[:]
+    
+    prefixComment = lambda x: "\" " + x
+    comments = []
+    ftcomments = []
+    kcomments = []
+
+    comments.append("Press ?, for help")
+    comments.append("j: next line")
+    comments.append("k: prev line")
+    comments.append("<Space>: next line")
+    comments.append("<Enter>: open file or expand directory or fold directory")
+    comments.append("q: close tab")
+    comments = map(prefixComment, comments)
+    buf.append(comments)
+
+    ftcomments.append("=File Tree=")
+    ftcomments.append("")
+    ftcomments = map(prefixComment, ftcomments))
+    buf.append(ftcomments)
+    for it in tab.katconfig['files']:
+        buf.append(it.path)
+
+    kcomments.append("=Kconfig=")
+    kcomments.append("")
+    kcomments = list(map(prefixComment, kcomments))
+    buf.append(kcomments)
+    for it in tab.katconfig['kconfigs']:
+        buf.append(it.path)
+
+    buf[0] = None
