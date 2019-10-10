@@ -8,8 +8,6 @@ import kat.ui.taglist as tl
 from kat.katconfig import Katconfig
 
 def initializeKAT(configPath):
-    #  print (configPath)
-    #  kc.initConfigFile(configPath)
     config = Katconfig(configPath)
 
     katconfig = {}
@@ -17,11 +15,13 @@ def initializeKAT(configPath):
     files = []
     for it in config.files:
         files.append(File(it))
+    #  files = sorted(files, key=lambda x: x.path)
     katconfig['files'] = files
 
     kconfigs = []
     for it in config.kconfigs:
         kconfigs.append(File(it))
+    #  kconfigs = sorted(kconfigs, key=lambda x: x.path)
     katconfig['kconfigs'] = kconfigs
 
     TabPage(katconfig)

@@ -15,23 +15,15 @@ def preInitialize():
 
     vim.command("silent new " + nameFileTree)
     buf = vim.current.buffer
-    vim.command("silent setl filetype=" + vim.vars['KATFiletypeFileTree'].decode())
-    #  buf.options['filetype'] = vim.vars['KATFiletypeFileTree'].decode()
-    render.filetree(tab, buf)
-    #  buf.options['swapfile'] = False
-    #  buf.options['buftype'] = b'nofile'
-    #  buf.options['modifiable'] = False
-    #  buf.options['buflisted'] = False
-    vim.command("silent setl noswapfile")
+    render.filetree(tab)
+    buf.append(tab.buf)
+    buf[0] = None
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
     vim.command("silent setl nobuflisted")
-    vim.command("silent setl readonly")
-    vim.command("silent setg swapfile&")
     vim.command("silent setg buftype&")
     vim.command("silent setg modifiable&")
     vim.command("silent setg buflisted&")
-    vim.command("silent setg noreadonly")
     vim.command("hide")
     
 
@@ -42,29 +34,48 @@ def attach():
     tab = tabpages[currentTabpageNumber()]
 
     vim.command("silent topleft vert 30new " + nameFileTree)
+    #  vim.command("silent setl filetype=" + vim.vars['KATFiletypeFileTree'].decode())
     buf = vim.current.buffer
     if len(buf) == 1:
-        vim.command("silent setg noreadonly")
+        vim.command("silent setl noreadonly")
         vim.command("silent setl modifiable")
-        preInitialize()
+        buf.append(tab.buf)
+        buf[0] = None
+        detach()
+        attach()
+        return
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
     vim.command("silent setl nobuflisted")
-    vim.command("silent setg readonly")
+    vim.command("silent setl readonly")
     vim.command("silent setg swapfile&")
     vim.command("silent setg buftype&")
     vim.command("silent setg modifiable&")
     vim.command("silent setg buflisted&")
     vim.command("silent setg readonly&")
 
+    # fold option
+    #  vim.command("silent setl foldmethod=indent")
+    #  defaultsw = vim.eval("&shiftwidth")
+    #  vim.command("silent setl shiftwidth=2")
 
 
-def detach(number):
+    #  vim.command("silent setg foldmethod&")
+    #  vim.command("silent setg shiftwidth=" + defaultsw)
+
+
+
+
+def detach():
     if not isUsing():
         return
 
     tab = tabpages[currentTabpageNumber()]
+
+    number = filetreeWindowNumber()
+    if number == -1:
+        return
     
     vim.command("silent " + str(number) + "hide")
 
@@ -74,10 +85,61 @@ def toggle():
 
     tab = tabpages[currentTabpageNumber()]
     
-    number = tab.filetreeWindowNumber()
-
+    number = filetreeWindowNumber()
     if number == -1:
         attach()
     else:
-        detach(number)
+        detach()
     
+
+def openFile(numLine):
+    if not isUsing():
+        return
+
+    tab = tabpages[currentTabpageNumber()]
+
+    if numLine not in tab.matched:
+        return
+
+    name = vim.vars['KATRootDir'].decode() + '/' + tab.matched[numLine].path
+    vim.command("badd " + name)
+
+    vim.current.window = findSuitableWindowOfNewFile(tab) # window is changed
+    vim.command("buffer " + name)
+    
+            
+
+    
+def filetreeWindowNumber():
+    tmp = int(vim.eval("bufwinnr(\"" + nameFileTree + "\")"))
+    return tmp
+
+def findSuitableWindowOfNewFile(tab):
+    #  if vim.eval("bufname(" \
+        #  + str(int(vim.eval("winbufnr(" + str(win.number) + ")"))) \
+        #  + ")").decode() == nameFileTree:
+    backupWindow = vim.current.window
+    window = None
+    for w in tab.tabpage.windows:
+        if w.buffer.name.split("/")[-1] != nameFileTree:
+            bufinfo = vim.eval("getbufinfo(winbufnr(" + str(w.number) \
+                        + "))[0]")
+            if bool(int(bufinfo['hidden'])) is True:
+                continue
+            if bool(int(bufinfo['listed'])) is False:
+                continue
+            if bool(int(bufinfo['loaded'])) is False:
+                continue
+            if window is None:
+                window = w
+            if bool(int(bufinfo['changed'])) is False:
+                window = w
+                return window
+    if window is not None:
+        vim.current.window = window
+    vim.command("silent new")
+    window = vim.current.window
+    vim.current.window = backupWindow
+    return window
+    
+

@@ -57,10 +57,18 @@ def toggle():
     
     #  w = tab.findFileTreeWindow()
     
-    number = tab.taglistWindowNumber()
+    number = taglistWindowNumber()
 
     if number == -1:
         attach()
     else:
         detach(number)
     
+
+def taglistWindowNumber():
+    tmp = int(vim.eval("bufwinnr(\"" + nameTagList + "\")"))
+    return tmp
+    
+
+
+

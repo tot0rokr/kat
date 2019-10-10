@@ -1,4 +1,4 @@
-from file import File
+from kat.lib.file import File
 class Location:
     def __init__(self):
         self.file = File()

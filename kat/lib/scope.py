@@ -1,4 +1,4 @@
-from file       import File
+from kat.lib.file       import File
 class Scope:
     def __init__(self, path, scope, start=None, end=None):
         self.path = path            # File()

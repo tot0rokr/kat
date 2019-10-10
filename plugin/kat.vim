@@ -15,12 +15,20 @@ if !has('python3')
 endif
 let g:loaded_kat = 1
 
-let g:KATConfigPath = findfile("kat.ref")
+let g:KATConfigPath = findfile("kat.ref", ".;")
 
 if empty(g:KATConfigPath)
-    echo "no kernel"
     finish
 endif
+
+let s:tmp = substitute(g:KATConfigPath, "/\\=[^/]*$", "", "")
+if s:tmp == ""
+    let g:KATRootDir = getcwd()
+else
+    let g:KATRootDir = s:tmp
+endif
+
+
 
 
 " Function: s:InitVariable() function {{{2
@@ -46,7 +54,6 @@ endfunction
 call s:InitVariable("g:KATUsing", 1)
 call s:InitVariable("g:KATUsingFileTree", 1)
 call s:InitVariable("g:KATUsingTagList", 1)
-call s:InitVariable("g:KATDefaultDirectory", ".")
 call s:InitVariable("g:KATCreateDefaultMappings", 1)
 call s:InitVariable("g:KATBufNameFileTree", "=KAT-FileTree=")
 call s:InitVariable("g:KATBufNameTagList", "=KAT-TagList=")
@@ -84,9 +91,14 @@ augroup kat
 augroup END
 
 augroup katfiletree
-    " autocmd BufNewFile,Bufread =KAT-FileTree= setf katfiletree
-    " exec 'autocmd BufNewFile,Bufread '.g:KATBufNameFileTree.' set filetype=katfiletree'
-    exec 'autocmd BufLeave '.g:KATBufNameFileTree. ' :python3 print("hello")'
+    " autocmd BufNewFile,BufRead =KAT-FileTree= setf katfiletree
+    exec 'autocmd BufEnter '.g:KATBufNameFileTree
+                \ . ' setl filetype='.g:KATFiletypeFileTree
+    " exec 'autocmd FileType '.g:KATFiletypeFileTree
+                " \ . ' source ' . s:plugin_root_dir . '/lib/kat/key_map.vim'
+                " \ . 'call s:KATKeyMapFileTree()' 
+    exec 'autocmd BufLeave '.g:KATBufNameFileTree
+                \ . ' :python3 print("hello")'
 augroup END
 
 " augroup kattaglist
@@ -122,6 +134,12 @@ endfunction
 " 
 function s:KATToggleFileTree()
     python3 ft.toggle()
+endfunction
+
+" Function: s:KATFileOpenFileTree() function {{{2
+" 
+function s:KATFileOpenFileTree(num)
+    exec 'python3 ft.openFile(' . a:num . ')'
 endfunction
 
 
@@ -188,6 +206,8 @@ function KATEvent(target)
         call s:KATDetachTagList()
     elseif a:target ==? 'ToggleTagList'
         call s:KATToggleTagList()
+    elseif a:target ==? 'FileOpenFileTree'
+        call s:KATFileOpenFileTree(line("."))
     endif
 endfunction
 
@@ -201,6 +221,7 @@ function s:CreateMaps(target, description, shortcut)
     let plug = '<Plug>KAT' . a:target
 
     execute 'nnoremap <silent> ' . plug . ' :call KATEvent("' . a:target . '")<CR>'
+    execute 'xnoremap <silent> ' . plug . ' :call KATEvent("' . a:target . '")<CR>'
     if strlen(a:shortcut)
         if g:KATCreateDefaultMappings && !hasmapto(plug, 'n')
             execute 'nmap <leader>' . a:shortcut . ' ' . plug
@@ -214,3 +235,4 @@ call s:CreateMaps('ToggleFileTree',   'ToggleFileTree',     ']f')
 call s:CreateMaps('AttachTagList',   'AttachTagList',     '')
 call s:CreateMaps('DetachTagList',   'DetachTagList',     '')
 call s:CreateMaps('ToggleTagList',   'ToggleTagList',     ']t')
+call s:CreateMaps('FileOpenFileTree', 'FileOpenFileTree',    '')

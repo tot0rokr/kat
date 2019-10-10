@@ -1,6 +1,6 @@
-from scope      import Scope
-from contents   import Contents
-from file       import File
+from kat.lib.scope      import Scope
+from kat.lib.contents   import Contents
+from kat.lib.file       import File
 class Tag:
     def __init__(self, path, line, name, scope, type=None, defi=None):
         self.path = path               # File() / file path
@@ -16,6 +16,7 @@ class Tag:
 
 class DefineTag(Tag):
     def __init__(self, path, line, name, scope, type=None):
+        pass
 
 
 

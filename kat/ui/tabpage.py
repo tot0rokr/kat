@@ -17,14 +17,11 @@ class TabPage:
         self.tabpageNumber = currentTabpageNumber()
         self.tabpage = vim.current.tabpage
         self.katconfig = katconfig
+        self.buf = []       # buf contents
+        self.matched = {} # match between files and filetree
+        self.helplen = 0
         tabpages[self.tabpageNumber] = self
 
-    def filetreeWindowNumber(self):
-        tmp = int(vim.eval("bufwinnr(\"" + nameFileTree + "\")"))
-        return tmp
 
-    def taglistWindowNumber(self):
-        tmp = int(vim.eval("bufwinnr(\"" + nameTagList + "\")"))
-        return tmp
 
 

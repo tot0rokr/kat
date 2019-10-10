@@ -33,8 +33,5 @@ class Katconfig:
         self.options.remove("")
         self.files.remove("")
         self.kconfigs.remove("")
-        #  options = lines[indexOptions + 1:indexFiles]
-        #  files = lines[indexFiles + 1:indexKconfigs]
-        #  kconfigs = lines[indexKconfigs + 1:]
 
         f.close()
