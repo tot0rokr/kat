@@ -12,7 +12,6 @@ token: a semantic type of unit processed by scanner
 
 """
 
-from kat.tracer import curconfigparser as ccp
 import re
 
 space = re.compile("[ \t\r\n\v\f]")
@@ -80,5 +79,5 @@ def scan(rawdata):
             raise AssertionError("CurconfigscannerNoMatchError")
 
     #  return tokens
-    return ccp.parse(tokens)
+    return tokens
 
