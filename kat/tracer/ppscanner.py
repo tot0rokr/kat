@@ -22,153 +22,19 @@ tokens:
     T_KEYWORD
     T_QUOTES_DOUBLE
     T_QUOTES_SINGLE
-    T_FLOATING
-    T_INTEGER
-    T_OPERATOR
+    T_VARIABLE_ARGUMENTS
     T_COMMA
     T_IDENTIFIER
     T_PARENTHESIS_OPEN
     T_PARENTHESIS_CLOSE
-    T_BRACE_OPEN
-    T_BRACE_CLOSE
-    T_BRACKET_OPEN
-    T_BRACKET_CLOSE
     T_SEMICOLON
     T_BACKSLASH
-    T_ETC
 
 """
 
 from kat.lib.token    import Token
 import re
-
-space = re.compile("[ \t\r\n\v\f]") # equal with \s
-commentSingleLine = re.compile(r"//.*")
-commentMultiLineOpen = re.compile(r"/\*")
-commentMultiLineClose = re.compile(r"\*/")
-#  unsigned = re.compile("unsigned")
-preprocess = re.compile(r"""
-        ^\#                  # prefix
-        (
-            (
-                [a-z]+              # preprocess word
-                #  include | define | ifndef | ifdef | if | elif | else
-                #  | endif | error | undef | pragma | warning | line
-            ) 
-            (
-                [ \t]+                  # space
-                (
-                    /\*.*\*/            # multi line comment
-                    | ".*"              # string value
-                    | '.'               # charactor value
-                    | /                 # divisor operator
-                    | [^\\\n"'/]*       # not string and backslash and newline
-                )+                      # one or more
-                (
-                    \\[ \t]*\n          # backslash - several space - newline
-                    (
-                        /\*.*\*/        # multi line comment
-                        | ".*"          # string value
-                        | '.'           # charactor value
-                        | /             # divisor operator
-                        | [^\\\n"'/]*   # not string and backslash and newline
-                    )+                  # one or more
-                )*                      # zero or more
-            )?                          # zero or one
-        )
-        """, re.VERBOSE | re.MULTILINE)
-datatype = re.compile(r"""
-        void
-        | char
-        | short
-        | int
-        | long
-        | long[ ]int
-        | long[ ]long
-        | long[ ]long[ ]int
-        | float
-        | double
-        | long[ ]double
-        | _Bool
-        """, re.VERBOSE)
-keyword = re.compile(r"""
-        (
-            struct      # define type
-            | union
-            | enum
-            | typedef   # typedef
-            | extern    # extern
-            | for       # loop
-            | while
-            | do
-            | break
-            | continue
-            | if        # condition
-            | else
-            | switch
-            | case
-            | default
-            | goto
-            | const     # restrict
-            | restrict
-            | static
-            | register
-            | auto
-            | unsigned
-            | signed
-            | volatile
-            | _Atomic   # addition
-            | _Complex
-            | _Generic
-            | _Imaginary
-            | _Noreturn
-            | _Static_assert
-            | _Thread_local
-            | inline    # inline
-            | return    # return
-            | sizeof    # sizeof
-            | typeof    # typeof # gcc grammar
-            | _Alignof  # alignof
-        )
-        """, re.VERBOSE)
-quotesDouble = re.compile("\"")
-quotesSingle = re.compile("\'")
-floating = re.compile(r"""
-        [0-9]+\.[0-9]+[fF]?             # decimal floating
-        | 0x[0-9A-Fa-f]+\.[0-9A-Fa-f]+[fF]?p[0-9]+    # hexadecimal floating
-        """, re.VERBOSE)
-integer = re.compile(r"""
-        0x[0-9A-Fa-f]+[Uu]?[Ll]{0,2}    # hexadecimal
-        | 0[0-7]+[Uu]?[Ll]{0,2}         # octal
-        | [1-9][0-9]*[Uu]?[Ll]{0,2}     # decimal
-        | 0                             # 0
-        """, re.VERBOSE)
-operator = re.compile(r"""
-        -> | \.                             # member
-        | = | \+= | -= | \*= | /= | %=      # assignment
-        | &= | \|= | \^= | <<= | >>= 
-        | << | >>                           # bitwise shift
-        | == | != | >= | <= | > | <         # comparison / relational
-        | ! | && | \|\|                     # logical
-        | ~ | & | \| | \^                   # bitwise (& also is address-of)
-        | \+\+ | -- | \+ | - | \* | / | %   # arithmetic (* also is indirection)
-        | \? | :                            # ternary conditional
-        """, re.VERBOSE)
-comma = re.compile(",")
-identifier = re.compile("[a-zA-Z_][a-zA-Z0-9_]*")
-parenthesisOpen = re.compile(r"\(")
-parenthesisClose = re.compile(r"\)")
-braceOpen = re.compile(r"\{")
-braceClose = re.compile(r"\}")
-bracketOpen = re.compile(r"\[")
-bracketClose = re.compile(r"\]")
-semicolon = re.compile(";")
-backslash = re.compile(r"\\")
-newline = re.compile(r"\n")
-etcCharators = re.compile(r"""
-        @ | \#\# | \# | $ | % | ` | ~
-        """, re.VERBOSE)
-
+from kat.tracer.pplib import *
 
 #  regexList = [
     #  (space, None),
@@ -212,6 +78,8 @@ def scan(rawdata):
     tmp = 0
     token_nr = 0
 
+    tokens.append(Token(token_kind['T_FIRST']))
+
     preprocesses = []
     #  preprocesses = preprocess.findall(rawdata)
     
@@ -230,7 +98,7 @@ def scan(rawdata):
             tmp = 0
             lines += line
         #  print(lines)
-
+        lines += "\n"
         matchedString = preprocess.match(lines) # make matchedString as preprocess
                                                 # about lines
         lines = ""                              # re-initialize 0
@@ -238,19 +106,23 @@ def scan(rawdata):
                                                 # go to next line
             continue
 
-        key = (matchedString.group(2), matchedString.group(3))
-        print (str(line_nr) + " : " + str(key))
+        key = [matchedString.group(2), matchedString.group(3)]
         if key[0] == "include":
             matchedString = re.compile('[ \t]?([<"])(.*)[>"]').search(key[1])
 
             if matchedString.group(1) == "<":
                 token = Token(line=lines, line_nr=line_nr
-                        , substance=matchedString.group(2), kind="T_INCLUDE_STD_H")
+                        , substance=matchedString.group(2), kind=token_kind["T_INCLUDE_STD_H"])
                 tokens.append(token)
             elif matchedString.group(1) == '"':
                 token = Token(line=lines, line_nr=line_nr
-                        , substance=matchedString.group(2), kind="T_INCLUDE_USR_H")
+                        , substance=matchedString.group(2), kind=token_kind["T_INCLUDE_USR_H"])
                 tokens.append(token)
+            else:
+                raise AssertionError("ppscanner: include")
+            token = Token(token_kind["T_NEWLINE"])
+            tokens.append(token)
+
             continue
         elif key[0] == "if":
             pass
@@ -261,19 +133,28 @@ def scan(rawdata):
             pass
         elif key[0] == "else":
             token = Token(line=lines, line_nr=line_nr
-                    , substance=None, kind="T_PREPROCESS_"+key[0].upper())
+                    , substance=preprocess_kind[key[0]], kind=token_kind["T_PREPROCESS"])
+                    #  , substance=None, kind=token_kind["T_PREPROCESS_"+key[0].upper()])
+            tokens.append(token)
+            token = Token(token_kind["T_NEWLINE"])
             tokens.append(token)
             continue
         elif key[0] == "elif":
             pass
         elif key[0] == "endif":
             token = Token(line=line, line_nr=line_nr
-                    , substance=None, kind="T_PREPROCESS_"+key[0].upper())
+                    , substance=preprocess_kind[key[0]], kind=token_kind["T_PREPROCESS"])
+                    #  , substance=None, kind=token_kind["T_PREPROCESS_"+key[0].upper()])
+            tokens.append(token)
+            token = Token(token_kind["T_NEWLINE"])
             tokens.append(token)
             continue
         elif key[0] == "define":
-            if key[1][0] == '(':
-                key[0] = "definefunc"
+            key[0] = "macro"
+            matchedString = re.compile('define[ \t]+[A-Za-z_][A-Za-z_0-9]*\(').match(key[1])
+            if matchedString is not None:
+                key[0] = "macrofunc"
+
         elif key[0] == "error":
             pass
         elif key[0] == "undef":
@@ -287,7 +168,8 @@ def scan(rawdata):
 
 
         token = Token(line=lines, line_nr=line_nr
-                , substance=None, kind="T_PREPROCESS_"+key[0].upper())
+                , substance=preprocess_kind[key[0]], kind=token_kind["T_PREPROCESS"])
+                #  , substance=None, kind=token_kind["T_PREPROCESS_"+key[0].upper()])
         tokens.append(token)
 
         text = key[1]
@@ -296,17 +178,38 @@ def scan(rawdata):
             #  tokens.append(token)
             # tokens.append((None, None, None, "T_NEWLINE"))
         while len(text) > 0:
+            success = False
+            for outer_it in range(len(regex)):
+                matched_string = regex[outer_it].match(text)
+                if matched_string is not None:
+                    if outer_it == 0:
+                        text = text[matched_string.end():]
+                        success = True
+                        break
+                    substance = matched_string.group()
+                    kind = outer_it
+                    if outer_it == token_kind['T_IDENTIFIER']:
+                        for inner_it in range(token_kind['T_IDENTIFIER'] + 1,
+                                token_kind['T_SIZEOF'] + 1):
+                            inner_matched_string = regex[inner_it].match(text)
+                            if inner_matched_string is not None \
+                                    and inner_matched_string.group() == matched_string.group():
+                                kind = inner_it
+                                break
+                    text = text[matched_string.end():]
+                    token = Token(kind=kind, line_nr=line_nr, substance=substance)
+                    tokens.append(token)
+                    success = True
+                    break
+            if success is True:
+                continue
 
-            #  for regex in regexList:
-                #  matchedString = regex[0].match(text)
-                #  if matchedString is not None:
-                    #  text = text[matchedString.end():]
-                    #  if regex[0] == space:
-                        #  continue
-                        
-                    #  token = Token(regex[1], line, line_nr, matchedString.group)
-                    #  tokens.append(token)
-                    #  continue
+            print("outer_it : ", outer_it)
+            print("inner_it : ", inner_it)
+            if substance is not None:
+                print("substance : ", substance)
+            print("line_nr : ", line_nr)
+            raise AssertionError("ppascanner.py")
 
             matchedString = space.match(text)
             if matchedString is not None:
@@ -352,21 +255,23 @@ def scan(rawdata):
             if matchedString is not None:
                 datatypeString = datatype.match(text)
                 keywordString = keyword.match(text)
-                if (datatypeString is not None 
-                        and datatypeString.group() == matchedString.group()):
-                    token = Token(line=None, line_nr=None
-                            , substance=matchedString.group(), kind="T_DATATYPE")
-                elif (keywordString is not None
-                        and keywordString.group() == matchedString.group()):
-                    token = Token(line=None, line_nr=None
-                            , substance=matchedString.group(), kind="T_KEYWORD")
+                if datatypeString is not None \
+                        and datatypeString.group() == matchedString.group():
+                            pass
+                    #  token = Token(line=None, line_nr=None
+                            #  , substance=matchedString.group(), kind="T_DATATYPE")
+                elif keywordString is not None \
+                        and keywordString.group() == matchedString.group():
+                            pass
+                    #  token = Token(line=None, line_nr=None
+                            #  , substance=matchedString.group(), kind="T_KEYWORD")
                 else:
                     token = Token(line=line, line_nr=line_nr
                             , substance=matchedString.group(), kind="T_IDENTIFIER")
+                    tokens.append(token)
                 text = text[matchedString.end():]
                 #  token = Token(line=line, line_nr=line_nr
                         #  , substance=matchedString.group(), kind="T_IDENTIFIER")
-                tokens.append(token)
                 continue
 
             #  matchedString = datatype.match(text)
@@ -389,7 +294,7 @@ def scan(rawdata):
             if matchedString is not None:
                 text = text[matchedString.end():]
                 token = Token(line=None, line_nr=None
-                        , substance=matchedString.group(), kind="T_QUOTES_DOUBLE")
+                        , substance=None, kind="T_QUOTES_DOUBLE")
                 tokens.append(token)
                 continue
 
@@ -397,39 +302,47 @@ def scan(rawdata):
             if matchedString is not None:
                 text = text[matchedString.end():]
                 token = Token(line=None, line_nr=None
-                        , substance=matchedString.group(), kind="T_QUOTES_SINGLE")
+                        , substance=None, kind="T_QUOTES_SINGLE")
                 tokens.append(token)
                 continue
 
             matchedString = floating.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
-                token = Token(line=None, line_nr=None
-                        , substance=matchedString.group(), kind="T_FLOATING")
-                tokens.append(token)
+                #  token = Token(line=None, line_nr=None
+                        #  , substance=matchedString.group(), kind="T_FLOATING")
+                #  tokens.append(token)
                 continue
 
             matchedString = integer.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
+                #  token = Token(line=None, line_nr=None
+                        #  , substance=matchedString.group(), kind="T_INTEGER")
+                #  tokens.append(token)
+                continue
+
+            matchedString = variableArguments.match(text)
+            if matchedString is not None:
+                text = text[matchedString.end():]
                 token = Token(line=None, line_nr=None
-                        , substance=matchedString.group(), kind="T_INTEGER")
+                        , substance=None, kind="T_VARIABLE_ARGUMENTS")
                 tokens.append(token)
                 continue
 
             matchedString = operator.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
-                token = Token(line=None, line_nr=None
-                        , substance=matchedString.group(), kind="T_OPERATOR")
-                tokens.append(token)
+                #  token = Token(line=None, line_nr=None
+                        #  , substance=matchedString.group(), kind="T_OPERATOR")
+                #  tokens.append(token)
                 continue
 
             matchedString = comma.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
                 token = Token(line=None, line_nr=None
-                        , substance=matchedString.group(), kind="T_COMMA")
+                        , substance=None, kind="T_COMMA")
                 tokens.append(token)
                 continue
 
@@ -452,41 +365,41 @@ def scan(rawdata):
             matchedString = braceOpen.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
-                token = Token(line=None, line_nr=line_nr
-                        , substance=None, kind="T_BRACE_OPEN")
-                tokens.append(token)
+                #  token = Token(line=None, line_nr=line_nr
+                        #  , substance=None, kind="T_BRACE_OPEN")
+                #  tokens.append(token)
                 continue
 
             matchedString = braceClose.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
-                token = Token(line=None, line_nr=line_nr
-                        , substance=None, kind="T_BRACE_CLOSE")
-                tokens.append(token)
+                #  token = Token(line=None, line_nr=line_nr
+                        #  , substance=None, kind="T_BRACE_CLOSE")
+                #  tokens.append(token)
                 continue
 
             matchedString = bracketOpen.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
-                token = Token(line=None, line_nr=line_nr
-                        , substance=None, kind="T_BRACKET_OPEN")
-                tokens.append(token)
+                #  token = Token(line=None, line_nr=line_nr
+                        #  , substance=None, kind="T_BRACKET_OPEN")
+                #  tokens.append(token)
                 continue
 
             matchedString = bracketClose.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
-                token = Token(line=None, line_nr=line_nr
-                        , substance=None, kind="T_BRACKET_CLOSE")
-                tokens.append(token)
+                #  token = Token(line=None, line_nr=line_nr
+                        #  , substance=None, kind="T_BRACKET_CLOSE")
+                #  tokens.append(token)
                 continue
 
             matchedString = semicolon.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
-                token = Token(line=None, line_nr=line_nr
-                        , substance=matchedString.group(), kind="T_SEMICOLON")
-                tokens.append(token)
+                #  token = Token(line=None, line_nr=line_nr
+                        #  , substance=matchedString.group(), kind="T_SEMICOLON")
+                #  tokens.append(token)
                 continue
 
             matchedString = backslash.match(text)
@@ -500,9 +413,9 @@ def scan(rawdata):
             matchedString = etcCharators.match(text)
             if matchedString is not None:
                 text = text[matchedString.end():]
-                token = Token(line=None, line_nr=None
-                        , substance=matchedString.group(), kind="T_ETC_CHARATORS")
-                tokens.append(token)
+                #  token = Token(line=None, line_nr=None
+                        #  , substance=matchedString.group(), kind="T_ETC_CHARATORS")
+                #  tokens.append(token)
                 continue
 
             print(line_nr, end=': ')

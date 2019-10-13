@@ -1,27 +1,35 @@
-from scope      import Scope
-from contents   import Contents
-from file       import File
+from kat.lib.scope      import Scope
+from kat.lib.contents   import Contents
+from kat.lib.file       import File
+
 class Tag:
-    def __init__(self, path, line, name, scope, type=None, defi=None):
+    def __init__(self, name, line, defi=None):
+        self.name = name
+        self.line = line
+        self.defi = defi
+
+    def __str__(self):
+        return str((self.name, self.line))
+
+
+class MacroTag(Tag):
+    def __init__(self, path, line, name, scope, type=None):
+        super().__init__(name, line, self)
         self.path = path               # File() / file path
-        self.line = line               # Int    / line number
-        self.name = name                 # str()  / tag name
-        self.contents = Contents()     # Contents
-        self.container = scope
+        #  self.contents = Contents()     # Contents
+        self.containedBy = scope
         self.type = type                 # what it is used type in code
-        self.definition = defi             # DefinitionTag()  / definition tag
 
     def __repr__(self):
         return repr(self.name)
 
-class DefineTag(Tag):
-    def __init__(self, path, line, name, scope, type=None):
-
+    def __str__(self):
+        return str((self.name, self.line, self.path))
 
 
 class DefinitionTag(Tag):
     def __init__(self, path, line, name, scope, type=None):
-        self.super(path, line, name, type, self)
+        self.super(name, line, self)
         self.validScope = scope                   # ScopeTag() / valid scope. 
 
 
