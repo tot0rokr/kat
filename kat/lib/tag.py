@@ -17,7 +17,7 @@ class MacroTag(Tag):
         super().__init__(name, line, self)
         self.path = path               # File() / file path
         #  self.contents = Contents()     # Contents
-        self.containedBy = scope
+        self.contained_by = scope
         self.type = type                 # what it is used type in code
 
     def __repr__(self):

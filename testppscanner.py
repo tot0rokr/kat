@@ -1,5 +1,5 @@
 from kat.tracer import ppscanner as pps
-from kat.tracer.pplib   import *
+from kat.tracer.tokenlib   import *
 #  import re
 
 f = open("test3.h", "r")

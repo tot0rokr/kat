@@ -14,22 +14,22 @@ return: constructed tags
 from kat.lib.tag        import *
 from kat.lib.file       import File
 from kat.lib.token      import Token
-from kat.lib.scope      import Scope
-from kat.tracer.pplib   import *
+from kat.lib.scope      import *
+from kat.tracer.tokenlib   import *
 import re
 
 
 def parse(tokens, file_tag):
-    scope = []
-    stack = []
+    scope_stack = []
     tags = []
     include_files = []                   # included libraries
                                         # they'll be mapped by pptracer after
                                         # returning this function
+    included_scope = []
 
     path = file_tag.path
     base = file_tag.scope
-    scope.append(base)
+    scope_stack.append(base)
 
     tokens.append(Token(token_kind['T_LAST']))      # This is only used by last chunk
 
@@ -51,7 +51,6 @@ def parse(tokens, file_tag):
             if tokens[-1].kind == token_kind['T_NEWLINE']:
                 tokens.pop()
 
-
             elif tokens[-1].kind == token_kind['T_COMMENT_SINGL_LINE']:
                 tokens.pop()
                 comment_single()
@@ -69,37 +68,58 @@ def parse(tokens, file_tag):
                 charactor()
 
             elif tokens[-1].kind == token_kind['T_INCLUDE_STD_H']:
-                #  includeFilePath = re.compile(r"<(.*)>").search(token.substance).group(1)
-                #  include_files.append(includeFilePath)
-                #  include_files.append(tokens.pop().substance)
-                tokens.pop().substance
+                include_files.append(tokens.pop().substance)
 
             elif tokens[-1].kind == token_kind['T_INCLUDE_USR_H']:
-                #  print(path + "Is it exist? " + tokens.pop().substance)
-                tokens.pop().substance
+                print(path + "Is it exist? " + tokens.pop().substance)
+                raise AssertionError("ppparser: include user header: " + path)
+                include_files.append(tokens.pop().substance)
 
             elif tokens[-1].kind == token_kind['T_PREPROCESS']:
                 tok = tokens.pop()
                 if tok.substance == preprocess_kind['macro']:
-                    #  tokens.pop()
-                    tag = macro()
-                    file_tag.appendDefinedTag(tag.name)
-                    tags.append(tag)
+                    macro()
 
                 elif tok.substance == preprocess_kind['macrofunc']:
-                    #  tokens.pop()
-                    tag = macrofunc()
-                    file_tag.appendDefinedTag(tag.name)
-                    tags.append(tag)
-            #  elif tokens[-1].kind == token_kind['T_PREPROCESS_MACRO']: # finish
-            #  elif tokens[-1].kind == token_kind['T_PREPROCESS_MACROFUNC']: #finish
+                    macrofunc()
 
+                elif tok.substance == preprocess_kind['undef']:
+                    macroundef()
+
+                elif tok.substance == preprocess_kind['ifdef']:
+                    ppifdef(tok.line_nr)
+
+                elif tok.substance == preprocess_kind['ifndef']:
+                    ppifndef(tok.line_nr)
+
+                elif tok.substance == preprocess_kind['if']:
+                    ppif(tok.line_nr)
+
+                elif tok.substance == preprocess_kind['elif']:
+                    ppelif(tok.line_nr)
+
+                elif tok.substance == preprocess_kind['else']:
+                    ppelse(tok.line_nr)
+
+                elif tok.substance == preprocess_kind['endif']:
+                    ppendif(tok.line_nr)
+
+                # pass preprocess
+                elif tok.substance == preprocess_kine['pragma']:
+                    expression("pass")
+                elif tok.substance == preprocess_kine['error']:
+                    expression("pass")
+                elif tok.substance == preprocess_kine['line']:
+                    expression("pass")
+                elif tok.substance == preprocess_kine['warning']:
+                    expression("pass")
 
             elif tokens[-1].kind == token_kind['T_LAST']:
-                return (tags, include_files)
+                return (tags, include_files, included_scope)
 
             else:
-                expression("start")
+                raise AssertionError("error_start")
+                #  expression("start")
                 #  error_text = "start"
                 #  break
 
@@ -149,10 +169,11 @@ def parse(tokens, file_tag):
         if tokens[-1].kind == token_kind['T_IDENTIFIER']:
             tok = tokens.pop()
             tag = MacroTag(name=tok.substance, line=tok.line_nr, path=path
-                    , scope=scope[-1], type="macro")
+                    , scope=scope_stack[-1], type="macro")
             expr = expression("macro")
             # TODO: put {expr} in {tag}
-            return tag
+            file_tag.append_defined_tag(tag.name)
+            tags.append(tag)
         else:
             error_text = "macro"
             raise AssertionError(error_text)
@@ -161,16 +182,26 @@ def parse(tokens, file_tag):
         if tokens[-1].kind == token_kind['T_IDENTIFIER']:
             tok = tokens.pop()
             tag = MacroTag(name=tok.substance, line=tok.line_nr, path=path
-                    , scope=scope[-1], type="macrofunc")
+                    , scope=scope_stack[-1], type="macrofunc")
             argu_list = macrofunc_argu()
             # TODO: put {argu_list} in {tag}
             expr = expression("macro")
             # TODO: put {expr} in {tag}
-            return tag
-            file_tag.appendDefinedTag(tag.name)
+            file_tag.append_defined_tag(tag.name)
             tags.append(tag)
         else:
             error_text = "macrofunc"
+            raise AssertionError(error_text)
+
+    def macroundef():
+        if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+            tok = tokens.pop()
+            tag = MacroTag(name=tok.substance, line=tok.line_nr, path=path
+                    , scope=scope_stack[-1], type="undef")
+            file_tag.append_defined_tag(tag.name)
+            tags.append(tag)
+        else:
+            error_text = "macroundef"
             raise AssertionError(error_text)
 
     def macrofunc_argu():
@@ -230,7 +261,7 @@ def parse(tokens, file_tag):
                     expr = tokens.pop()
             return expr
 
-        if type == "start":
+        elif type == "start":
             while True:
                 if tokens[-1].kind == token_kind['T_NEWLINE']:
                     tokens.pop()
@@ -252,18 +283,112 @@ def parse(tokens, file_tag):
                     tokens.pop()
             return None
 
+        elif type == "ppif":
+            expr = []
+            while True:
+                if tokens[-1].kind == token_kind['T_NEWLINE']:
+                    tokens.pop()
+                    break
+                elif tokens[-1].kind == token_kind['T_QUOTES_DOUBLE']:
+                    tokens.pop()
+                    string()
+                elif tokens[-1].kind == token_kind['T_QUOTES_SINGLE']:
+                    tokens.pop()
+                    charactor()
+                elif tokens[-1].kind == token_kind['T_BACKSLASH']:
+                    tokens.pop()
+                    if tokens[-1].kind == token_kind['T_NEWLINE']:
+                        tokens.pop()
+                    else:
+                        error_text = "expression - ppif"
+                        raise AssertionError(error_text)
+                else:
+                    tokens.pop()
+            return expr
+
+        elif type == "pass":
+            while True:
+                if tokens[-1].kind == token_kind['T_NEWLINE']:
+                    tokens.pop()
+                    break
+                elif tokens[-1].kind == token_kind['T_QUOTES_DOUBLE']:
+                    tokens.pop()
+                    string()
+                elif tokens[-1].kind == token_kind['T_QUOTES_SINGLE']:
+                    tokens.pop()
+                    charactor()
+                elif tokens[-1].kind == token_kind['T_BACKSLASH']:
+                    tokens.pop()
+                    if tokens[-1].kind == token_kind['T_NEWLINE']:
+                        tokens.pop()
+                    else:
+                        error_text = "expression - start"
+                        raise AssertionError(error_text)
+                else:
+                    tokens.pop()
+            return None
+
+
+
         else:
             error_text = "expression"
             raise AssertionError(error_text)
 
 
-        #  else:
-            #  error_text = "undefined state"
-            #  raise AssertionError(error_text)
+
+    def ppifdef(line_nr):
+        if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+            tok = tokens.pop()
+            scope = PreprocessScope(path=file_tag, scope=scope_stack[-1], start=line_nr)
+            scope.condition = [tok.substance, 1, "=="]
+            scope_stack.append(scope)
+        else:
+            error_text = "ppifdef"
+            raise AssertionError(error_text)
+
+    def ppifndef(line_nr):
+        if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+            tok = tokens.pop()
+            scope = PreprocessScope(path=file_tag, scope=scope_stack[-1], start=line_nr)
+            scope.condition = [tok.substance, 1, "!="]
+            scope_stack.append(scope)
+        else:
+            error_text = "ppifndef"
+            raise AssertionError(error_text)
+
+    def ppif(line_nr):
+        expr = expression("ppif")
+        scope = PreprocessScope(path=file_tag, scope=scope_stack[-1], start=line_nr)
+        scope.condition = expr
+        scope_stack.append(scope)
+
+    def ppelif(line_nr):
+        pre_scope = scope_stack.pop()
+        pre_scope.line[1] = line_nr - 1
+        expr = expression("ppif") # expression of ppelif is same
+        scope = PreprocessScope(path=file_tag, scope=pre_scope.contained_by, start=line_nr)
+        scope.condition = expr
+        pre_scope.post_associator = scope
+        scope.pre_associator = pre_scope
+        scope_stack.append(scope)
+        included_scope.append(pre_scope)
+
+        
+    def ppelse(line_nr):
+        pre_scope = scope_stack.pop()
+        pre_scope.line[1] = line_nr - 1
+        scope = PreprocessScope(path=file_tag, scope=pre_scope.contained_by, start=line_nr)
+        pre_scope.post_associator = scope
+        scope.pre_associator = pre_scope
+        scope_stack.append(scope)
+        included_scope.append(pre_scope)
+
+    def ppendif(line_nr):
+        pre_scope = scope_stack.pop()
+        pre_scope.line[1] = line_nr - 1
+        included_scope.append(pre_scope)
+        
 
     return start()
 
-    #  print("state : {}".format(stack[-1]))
-    #  print("token : {}".format(tokens[-1]))
-    #  raise AssertionError("ppparser: " + error_text)
 

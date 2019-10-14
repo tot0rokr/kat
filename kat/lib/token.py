@@ -1,4 +1,4 @@
-from kat.tracer.pplib   import *
+from kat.tracer.tokenlib   import *
 class Token:
     def __init__(self, kind, substance=None, line_nr=None, line=None):
         self.kind = kind

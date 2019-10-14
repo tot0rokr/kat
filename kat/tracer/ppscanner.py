@@ -34,7 +34,7 @@ tokens:
 
 from kat.lib.token    import Token
 import re
-from kat.tracer.pplib import *
+from kat.tracer.tokenlib import *
 
 #  regexList = [
     #  (space, None),
