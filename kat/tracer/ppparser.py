@@ -105,13 +105,13 @@ def parse(tokens, file_tag):
                     ppendif(tok.line_nr)
 
                 # pass preprocess
-                elif tok.substance == preprocess_kine['pragma']:
+                elif tok.substance == preprocess_kind['pragma']:
                     expression("pass")
-                elif tok.substance == preprocess_kine['error']:
+                elif tok.substance == preprocess_kind['error']:
                     expression("pass")
-                elif tok.substance == preprocess_kine['line']:
+                elif tok.substance == preprocess_kind['line']:
                     expression("pass")
-                elif tok.substance == preprocess_kine['warning']:
+                elif tok.substance == preprocess_kind['warning']:
                     expression("pass")
 
             elif tokens[-1].kind == token_kind['T_LAST']:
