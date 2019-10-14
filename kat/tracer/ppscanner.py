@@ -63,12 +63,6 @@ from kat.tracer.tokenlib import *
 #  ]
 
 
-#  def match(text, regexList):
-    
-    #  for regex in regexList:
-        #  if regex.matched
-
-
 
 def scan(rawdata):
     tokens = []
@@ -81,11 +75,7 @@ def scan(rawdata):
     tokens.append(Token(token_kind['T_FIRST']))
 
     preprocesses = []
-    #  preprocesses = preprocess.findall(rawdata)
-    
-    # return preprocesses
 
-    #  for key in preprocesses:
     lines = ""
     for line in rawdata.split('\n'):
         line_cnt += 1           # line count
@@ -97,7 +87,7 @@ def scan(rawdata):
             line_nr = line_cnt - tmp    # line number of preprocess
             tmp = 0
             lines += line
-        #  print(lines)
+
         lines += "\n"
         matchedString = preprocess.match(lines) # make matchedString as preprocess
                                                 # about lines
@@ -173,10 +163,6 @@ def scan(rawdata):
         tokens.append(token)
 
         text = key[1]
-        #  if len(tokens) > 0:
-            #  token = Token("T_NEWLINE")
-            #  tokens.append(token)
-            # tokens.append((None, None, None, "T_NEWLINE"))
         while len(text) > 0:
             success = False
             for outer_it in range(len(regex)):
@@ -211,217 +197,5 @@ def scan(rawdata):
             print("line_nr : ", line_nr)
             raise AssertionError("ppascanner.py")
 
-            matchedString = space.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                if matchedString.group() == "\n":
-                    token = Token("T_NEWLINE")
-                    tokens.append(token)
-                continue
-
-            matchedString = commentSingleLine.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token("T_COMMENT_SINGL_LINE")
-                tokens.append(token)
-                continue
-
-            matchedString = commentMultiLineOpen.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token("T_COMMENT_MULTI_LINE_OPEN")
-                tokens.append(token)
-                continue
-
-            matchedString = commentMultiLineClose.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token("T_COMMENT_MULTI_LINE_CLOSE")
-                tokens.append(token)
-                continue
-
-            #  matchedString = preprocess.match(text)
-            #  if matchedString is not None:
-                #  text = text[matchedString.end():]
-                #  token = Token(kind="T_PREPROCESS", line=line
-                        #  , line_nr=line_nr, substance=(matchedString.group(1), matchedStirng.group(2)))
-                #  tokens.append(token)
-                #  continue
-
-            # if text is matched identifier it is possible enough to be keyword
-            # and datatype because they are matched by regular expression
-            # [a-zA-Z_][a-zA-Z0-9_]*
-            matchedString = identifier.match(text)
-            if matchedString is not None:
-                datatypeString = datatype.match(text)
-                keywordString = keyword.match(text)
-                if datatypeString is not None \
-                        and datatypeString.group() == matchedString.group():
-                            pass
-                    #  token = Token(line=None, line_nr=None
-                            #  , substance=matchedString.group(), kind="T_DATATYPE")
-                elif keywordString is not None \
-                        and keywordString.group() == matchedString.group():
-                            pass
-                    #  token = Token(line=None, line_nr=None
-                            #  , substance=matchedString.group(), kind="T_KEYWORD")
-                else:
-                    token = Token(line=line, line_nr=line_nr
-                            , substance=matchedString.group(), kind="T_IDENTIFIER")
-                    tokens.append(token)
-                text = text[matchedString.end():]
-                #  token = Token(line=line, line_nr=line_nr
-                        #  , substance=matchedString.group(), kind="T_IDENTIFIER")
-                continue
-
-            #  matchedString = datatype.match(text)
-            #  if matchedString is not None:
-                #  text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=None
-                        #  , substance=matchedString.group(), kind="T_DATATYPE")
-                #  tokens.append(token)
-                #  continue
-
-            #  matchedString = keyword.match(text)
-            #  if matchedString is not None:
-                #  text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=None
-                        #  , substance=matchedString.group(), kind="T_KEYWORD")
-                #  tokens.append(token)
-                #  continue
-
-            matchedString = quotesDouble.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token(line=None, line_nr=None
-                        , substance=None, kind="T_QUOTES_DOUBLE")
-                tokens.append(token)
-                continue
-
-            matchedString = quotesSingle.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token(line=None, line_nr=None
-                        , substance=None, kind="T_QUOTES_SINGLE")
-                tokens.append(token)
-                continue
-
-            matchedString = floating.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=None
-                        #  , substance=matchedString.group(), kind="T_FLOATING")
-                #  tokens.append(token)
-                continue
-
-            matchedString = integer.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=None
-                        #  , substance=matchedString.group(), kind="T_INTEGER")
-                #  tokens.append(token)
-                continue
-
-            matchedString = variableArguments.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token(line=None, line_nr=None
-                        , substance=None, kind="T_VARIABLE_ARGUMENTS")
-                tokens.append(token)
-                continue
-
-            matchedString = operator.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=None
-                        #  , substance=matchedString.group(), kind="T_OPERATOR")
-                #  tokens.append(token)
-                continue
-
-            matchedString = comma.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token(line=None, line_nr=None
-                        , substance=None, kind="T_COMMA")
-                tokens.append(token)
-                continue
-
-            matchedString = parenthesisOpen.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token(line=None, line_nr=line_nr
-                        , substance=None, kind="T_PARENTHESIS_OPEN")
-                tokens.append(token)
-                continue
-
-            matchedString = parenthesisClose.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token(line=None, line_nr=line_nr
-                        , substance=None, kind="T_PARENTHESIS_CLOSE")
-                tokens.append(token)
-                continue
-
-            matchedString = braceOpen.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=line_nr
-                        #  , substance=None, kind="T_BRACE_OPEN")
-                #  tokens.append(token)
-                continue
-
-            matchedString = braceClose.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=line_nr
-                        #  , substance=None, kind="T_BRACE_CLOSE")
-                #  tokens.append(token)
-                continue
-
-            matchedString = bracketOpen.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=line_nr
-                        #  , substance=None, kind="T_BRACKET_OPEN")
-                #  tokens.append(token)
-                continue
-
-            matchedString = bracketClose.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=line_nr
-                        #  , substance=None, kind="T_BRACKET_CLOSE")
-                #  tokens.append(token)
-                continue
-
-            matchedString = semicolon.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=line_nr
-                        #  , substance=matchedString.group(), kind="T_SEMICOLON")
-                #  tokens.append(token)
-                continue
-
-            matchedString = backslash.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                token = Token(line=None, line_nr=None
-                        , substance=matchedString.group(), kind="T_BACKSLASH")
-                tokens.append(token)
-                continue
-
-            matchedString = etcCharators.match(text)
-            if matchedString is not None:
-                text = text[matchedString.end():]
-                #  token = Token(line=None, line_nr=None
-                        #  , substance=matchedString.group(), kind="T_ETC_CHARATORS")
-                #  tokens.append(token)
-                continue
-
-            print(line_nr, end=': ')
-            print(text)
-            raise AssertionError("CscannerNoMatchError")
-
     return tokens               # scanner test
-    #return cp.parse(tokens)    # parser test
 
