@@ -10,7 +10,18 @@ class Tag:
 
     def __str__(self):
         return str((self.name, self.line))
+    
 
+class CurConfigTag(Tag): # curconfig tag
+    def __init__(self, name, line, value=None):
+        super().__init__(name, line)
+        self.value = value
+
+    def __repr__(self):
+        return repr(self.name)
+
+    def __str__(self):
+        return str((self.name, self.line, self.value))
 
 class MacroTag(Tag):
     def __init__(self, path, line, name, scope, type=None):
