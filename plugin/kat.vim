@@ -92,13 +92,18 @@ augroup END
 
 augroup katfiletree
     " autocmd BufNewFile,BufRead =KAT-FileTree= setf katfiletree
-    exec 'autocmd BufEnter '.g:KATBufNameFileTree
-                \ . ' setl filetype='.g:KATFiletypeFileTree
+    exec 'autocmd BufEnter ' . g:KATBufNameFileTree
+                \ . ' setl filetype=' . g:KATFiletypeFileTree
     " exec 'autocmd FileType '.g:KATFiletypeFileTree
                 " \ . ' source ' . s:plugin_root_dir . '/lib/kat/key_map.vim'
                 " \ . 'call s:KATKeyMapFileTree()' 
-    exec 'autocmd BufLeave '.g:KATBufNameFileTree
-                \ . ' :python3 print("hello")'
+    " exec 'autocmd BufLeave '.g:KATBufNameFileTree
+                " \ . ' :python3 print("hello")'
+augroup END
+
+augroup kattaglist
+    exec 'autocmd BufEnter ' . g:KATBufNameTagList
+                \ . ' setl filetype=' . g:KATFiletypeiTagList
 augroup END
 
 " augroup kattaglist
@@ -176,8 +181,14 @@ endfunction
 function s:KATToggleTagList()
     python3 tl.toggle()
 endfunction
-"
-"
+
+" Function: s:KATGotoTagList() function {{{2
+" 
+function s:KATGotoTagList(num)
+    exec 'python3 tl.goto_tag(' . a:num . ')'
+endfunction
+
+
 " SECTION: Explorer
 "==============================================================================
 " search (SrcExpr)
@@ -208,6 +219,8 @@ function KATEvent(target)
         call s:KATToggleTagList()
     elseif a:target ==? 'FileOpenFileTree'
         call s:KATFileOpenFileTree(line("."))
+    elseif a:target ==? 'GotoTagList'
+        call s:KATGotoTagList(line("."))
     endif
 endfunction
 
@@ -224,15 +237,16 @@ function s:CreateMaps(target, description, shortcut)
     execute 'xnoremap <silent> ' . plug . ' :call KATEvent("' . a:target . '")<CR>'
     if strlen(a:shortcut)
         if g:KATCreateDefaultMappings && !hasmapto(plug, 'n')
-            execute 'nmap <leader>' . a:shortcut . ' ' . plug
+            execute 'nmap <leader>]' . a:shortcut . ' ' . plug
         endif
     endif
 endfunction
 
 call s:CreateMaps('AttachFileTree',   'AttachFileTree',     '')
 call s:CreateMaps('DetachFileTree',   'DetachFileTree',     '')
-call s:CreateMaps('ToggleFileTree',   'ToggleFileTree',     ']f')
+call s:CreateMaps('ToggleFileTree',   'ToggleFileTree',     'f')
 call s:CreateMaps('AttachTagList',   'AttachTagList',     '')
 call s:CreateMaps('DetachTagList',   'DetachTagList',     '')
-call s:CreateMaps('ToggleTagList',   'ToggleTagList',     ']t')
+call s:CreateMaps('ToggleTagList',   'ToggleTagList',     't')
 call s:CreateMaps('FileOpenFileTree', 'FileOpenFileTree',    '')
+call s:CreateMaps('GotoTagList', 'GotoTagList',    '')

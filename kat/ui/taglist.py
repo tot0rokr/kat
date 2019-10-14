@@ -7,21 +7,27 @@ import kat.ui.render as render
 def isUsing():
     return bool(int(vim.vars['KATUsingTagList']))
 
-def preInitialize():
+def preInitialize(global_tags):
     if not isUsing():
         return
 
     tab = tabpages[currentTabpageNumber()]
 
-    vim.command("silent new " + nameTagList)
-    render.taglist(tab, vim.current.buffer)
-    vim.command("silent set noswapfile")
-    vim.command("silent set buftype=nofile")
-    vim.command("silent set buftype=nowrite")
-    vim.command("silent set nomodifiable")
-    vim.command("silent set nobuflisted")
-    vim.command("hide")
+    #  tags[currentTabpageNumber()] = global_tags
+    tab.global_tags = global_tags
 
+    vim.command("silent new " + nameTagList)
+    buf = vim.current.buffer
+    render.taglist(tab)
+    buf.append(tab.buf_taglist)
+    buf[0] = None
+    vim.command("silent setl buftype=nofile")
+    vim.command("silent setl nomodifiable")
+    vim.command("silent setl nobuflisted")
+    vim.command("silent setg buftype&")
+    vim.command("silent setg modifiable&")
+    vim.command("silent setg buflisted&")
+    vim.command("hide")
 
 def attach():
     if not isUsing():
@@ -30,18 +36,37 @@ def attach():
     tab = tabpages[currentTabpageNumber()]
 
     vim.command("silent botright vert 30new " + nameTagList)
-    vim.command("silent set buftype=nofile")
-    vim.command("silent set buftype=nowrite")
-    vim.command("silent set nomodifiable")
-    vim.command("silent set nobuflisted")
+    buf = vim.current.buffer
+    if len(buf) == 1:
+        vim.command("silent setl noreadonly")
+        vim.command("silent setl modifiable")
+        buf.append(tab.buf_taglist)
+        buf[0] = None
+        detach()
+        attach()
+        return
+    vim.command("silent setl noswapfile")
+    vim.command("silent setl buftype=nofile")
+    vim.command("silent setl nomodifiable")
+    vim.command("silent setl nobuflisted")
+    vim.command("silent setl readonly")
+    vim.command("silent setg swapfile&")
+    vim.command("silent setg buftype&")
+    vim.command("silent setg modifiable&")
+    vim.command("silent setg buflisted&")
+    vim.command("silent setg readonly&")
 
 
 
-def detach(number):
+def detach():
     if not isUsing():
         return
 
     tab = tabpages[currentTabpageNumber()]
+    
+    number = taglist_window_number()
+    if number == -1:
+        return
     
     vim.command("silent " + str(number) + "hide")
     #  try:
@@ -57,15 +82,14 @@ def toggle():
     
     #  w = tab.findFileTreeWindow()
     
-    number = taglistWindowNumber()
-
+    number = taglist_window_number()
     if number == -1:
         attach()
     else:
-        detach(number)
+        detach()
     
 
-def taglistWindowNumber():
+def taglist_window_number():
     tmp = int(vim.eval("bufwinnr(\"" + nameTagList + "\")"))
     return tmp
     

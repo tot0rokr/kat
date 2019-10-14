@@ -6,14 +6,15 @@
 if exists("b:current_syntax")
     finish
 endif
-let b:current_syntax = g:KATFiletypeFileTree
 
 if !exists("g:KATFiletypeFileTree")
     finish
 endif
 
+let b:current_syntax = g:KATFiletypeFileTree
+
 if !exists("g:KATMaxFileDepth")
-    let g:KATMaxFileDepth = 5
+    let g:KATMaxFileDepth = 7
 endif
 
 if !exists("g:KATMaxHighlightLineMax")
@@ -24,19 +25,18 @@ endif
 
 syntax clear
 
-syntax region KATFileTreeHelp start=/^\".*/ end=/^[^\"]\+/me=s-1,re=s-1 fold
+syntax match KATFileTreeSection /=.*=/ contained
+highlight link KATFileTreeSection PreProc
+
+syntax region KATFileTreeHelp start=/^\".*/ end=/^[^\"]\+/me=s-1,re=s-1 fold contains=KATFileTreeSection
 highlight link KATFileTreeHelp Constant
 
-syntax match KATFileTreeComment /#.*/
+syntax match KATFileTreeComment /#.*/ contains=KATFileTreeSection
 highlight link KATFileTreeComment Comment
-
-
-
 
 
 for i in range(0, g:KATMaxFileDepth)
     let s:indentString = repeat('  ', i)
-    let g:indentString = s:indentString
     exec 'syntax region KATFileTreeDirectoryDepth' . i
                 \ . ' matchgroup=KATFileTreeDirectoryHighLightStart'
                 \ . ' start=/^' . s:indentString . '▼.*/he=e,re=e+1'

@@ -6,8 +6,19 @@ prefixComment = lambda x: "# " + x
 prefixHelp = lambda x: "\" " + x
 
 
-def taglist(tab, buf):
-    pass
+def taglist(tab):
+    buf = []
+    buf.append("test")
+    buf.append("taglist")
+    tab.buf_taglist = buf
+
+    contents = []
+    for it in tab.global_tags:
+        contents.append(it.name)
+
+    buf.append(contents)
+    tab.buf_taglist = buf
+    return buf
 
 def makeFileTree(filelist):
     filestack = []
@@ -55,7 +66,7 @@ def filetree(tab):
     comments.append("want to close |help|")
     comments.append("")
     comments.append("= terminate =")
-    comments.append("<kat-prefix>f: quit")
+    comments.append("<kat-prefix>f: toggle")
     comments.append("q: quit")
     comments.append("")
     comments.append("= file =")
@@ -75,10 +86,10 @@ def filetree(tab):
     comments.append("   level of dir")
     comments.append("")
     comments.append("a: toggle open/close")
-    comments.append("A: recursively toggle")
-    comments.append("   open/close")
     comments.append("<space>: toggle open/close")
     comments.append("         as \'a\'")
+    comments.append("A: recursively toggle")
+    comments.append("   open/close")
     comments.append("")
     comments.append("= movement =")
     comments.append("j: next line")
@@ -143,6 +154,6 @@ def filetree(tab):
               #  + it['name']
         buf.append(line)
 
-    tab.buf = buf
+    tab.buf_filetree = buf
     return buf
 

@@ -16,7 +16,7 @@ def preInitialize():
     vim.command("silent new " + nameFileTree)
     buf = vim.current.buffer
     render.filetree(tab)
-    buf.append(tab.buf)
+    buf.append(tab.buf_filetree)
     buf[0] = None
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
@@ -34,12 +34,11 @@ def attach():
     tab = tabpages[currentTabpageNumber()]
 
     vim.command("silent topleft vert 30new " + nameFileTree)
-    #  vim.command("silent setl filetype=" + vim.vars['KATFiletypeFileTree'].decode())
     buf = vim.current.buffer
     if len(buf) == 1:
         vim.command("silent setl noreadonly")
         vim.command("silent setl modifiable")
-        buf.append(tab.buf)
+        buf.append(tab.buf_filetree)
         buf[0] = None
         detach()
         attach()
@@ -73,7 +72,7 @@ def detach():
 
     tab = tabpages[currentTabpageNumber()]
 
-    number = filetreeWindowNumber()
+    number = filetree_window_number()
     if number == -1:
         return
     
@@ -85,7 +84,7 @@ def toggle():
 
     tab = tabpages[currentTabpageNumber()]
     
-    number = filetreeWindowNumber()
+    number = filetree_window_number()
     if number == -1:
         attach()
     else:
@@ -108,9 +107,7 @@ def openFile(numLine):
     vim.command("buffer " + name)
     
             
-
-    
-def filetreeWindowNumber():
+def filetree_window_number():
     tmp = int(vim.eval("bufwinnr(\"" + nameFileTree + "\")"))
     return tmp
 
@@ -137,7 +134,7 @@ def findSuitableWindowOfNewFile(tab):
                 return window
     if window is not None:
         vim.current.window = window
-    vim.command("silent new")
+    vim.command("silent bo vert new")
     window = vim.current.window
     vim.current.window = backupWindow
     return window

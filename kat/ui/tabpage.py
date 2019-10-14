@@ -17,10 +17,12 @@ class TabPage:
         self.tabpageNumber = currentTabpageNumber()
         self.tabpage = vim.current.tabpage
         self.katconfig = katconfig
-        self.buf = []       # buf contents
+        self.buf_filetree = []       # buf contents
+        self.buf_taglist = []       # buf contents
         self.matched = {} # match between files and filetree
         self.helplen = 0
         tabpages[self.tabpageNumber] = self
+        global_tags = []
 
 
 
