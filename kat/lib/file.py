@@ -14,6 +14,9 @@ class File:
     def __call__(self):
         return self.path
 
+    def __str__(self):
+        return self.path
+
     def check_time(self):
         return self.__last_modified == self.get_modified_time()
 

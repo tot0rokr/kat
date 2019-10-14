@@ -11,7 +11,7 @@ newline = re.compile("\n")
 regex.append(newline)
 
 # comment
-commentSingleLine = re.compile(r"//.*")
+commentSingleLine = re.compile(r"//")
 regex.append(commentSingleLine)
 commentMultiLineOpen = re.compile(r"/\*")
 regex.append(commentMultiLineOpen)

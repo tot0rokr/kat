@@ -3,7 +3,7 @@ from kat.tracer import ppparser as ppp
 from kat.lib.file import File
 from kat.lib.scope import Scope
 
-f = open("test3.h", "r")
+f = open("per.h", "r")
 data = f.read()
 f.close()
 
@@ -11,7 +11,7 @@ debug = open("testppp.debug", "w")
 
 tokens = pps.scan(data)
 
-path = File("test3.h")
+path = File("per.h", "./")
 path.scope = Scope(path, None, 0, 0)
 
 tags, files, scopes = ppp.parse(tokens, path)
