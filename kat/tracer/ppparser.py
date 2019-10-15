@@ -71,8 +71,12 @@ def parse(tokens, file_tag):
                 include_files.append(tokens.pop().substance)
 
             elif tokens[-1].kind == token_kind['T_INCLUDE_USR_H']:
-                print(path + "Is it exist? " + tokens.pop().substance)
-                raise AssertionError("ppparser: include user header: " + path)
+                #  print(path + "Is it exist? " + tokens.pop().substance)
+                #  raise AssertionError("ppparser: include user header: " + path)
+                #  OF COURSE, EXIST
+                include_files.append(tokens.pop().substance)
+
+            elif tokens[-1].kind == token_kind['T_INCLUDE_MACRO']:
                 include_files.append(tokens.pop().substance)
 
             elif tokens[-1].kind == token_kind['T_PREPROCESS']:
@@ -118,14 +122,17 @@ def parse(tokens, file_tag):
                 return (tags, include_files, included_scope)
 
             else:
-                raise AssertionError("error_start")
+                error_text = "error_start"
+                raise AssertionError(error_text + "  : "
+                        + path + "  : " + str(tokens[-1].line_nr))
+                #  raise AssertionError("error_start")
                 #  expression("start")
                 #  error_text = "start"
                 #  break
 
     def comment_single():
         while True:
-            if token[-1].kind == token_kind['T_NEWLINE']:
+            if tokens[-1].kind == token_kind['T_NEWLINE']:
                 tokens.pop()
                 break
             else:
@@ -149,7 +156,16 @@ def parse(tokens, file_tag):
                 tokens.pop()
                 break
             else:
-                data += tokens.pop().substance
+                tok = tokens.pop()
+                if tok is None:
+                    raise AssertionError(token_kind_index[tok.kind] + "  " \
+                            + path + "   ")# + tok.line_nr)
+                    #  raise AssertionError("string_tok_none")
+                if tok.substance is None:
+                    #  raise AssertionError("string_tok_sub_none")
+                    raise AssertionError(token_kind_index[tok.kind] + "  " \
+                            + path + "   ")# + tok.line_nr)
+                data += tok.substance #tokens.pop().substance
         return data
     
     def charactor():
@@ -157,7 +173,8 @@ def parse(tokens, file_tag):
         while True:
             if tokens[-1].kind == token_kind['T_NEWLINE']:
                 error_text = "charactor_start"
-                raise AssertionError(error_text)
+                raise AssertionError(error_text + "  : "
+                        + path + "  : " + str(tokens[-1].line_nr))
             elif tokens[-1].kind == token_kind['T_QUOTES_SINGLE']:
                 tokens.pop()
                 break
@@ -166,7 +183,9 @@ def parse(tokens, file_tag):
         return data
 
     def macro():
-        if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
+                and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
             tag = MacroTag(name=tok.substance, line=tok.line_nr, path=path
                     , scope=scope_stack[-1], type="macro")
@@ -176,10 +195,13 @@ def parse(tokens, file_tag):
             tags.append(tag)
         else:
             error_text = "macro"
-            raise AssertionError(error_text)
+            raise AssertionError(error_text + "  : "
+                    + path + "  : " + str(tokens[-1].line_nr))
 
     def macrofunc():
-        if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
+                and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
             tag = MacroTag(name=tok.substance, line=tok.line_nr, path=path
                     , scope=scope_stack[-1], type="macrofunc")
@@ -194,12 +216,15 @@ def parse(tokens, file_tag):
             raise AssertionError(error_text)
 
     def macroundef():
-        if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
+                and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
             tag = MacroTag(name=tok.substance, line=tok.line_nr, path=path
                     , scope=scope_stack[-1], type="undef")
             file_tag.append_defined_tag(tag.name)
             tags.append(tag)
+            expression("pass")
         else:
             error_text = "macroundef"
             raise AssertionError(error_text)
@@ -208,26 +233,35 @@ def parse(tokens, file_tag):
         if tokens[-1].kind == token_kind['T_PARENTHESIS_OPEN']:
             tokens.pop()
             li = []
-            if tokens[-1].kind == token_kind['T_IDENTIFIER']: # listing
+            #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+            if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
+                    and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
                 li.append(tokens.pop())
                 while tokens[-1].kind == token_kind['T_COMMA']:
                     tokens.pop()
-                    if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+                    #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+                    if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
+                            and tokens[-1].kind <= token_kind['T_SIZEOF']:
                         li.append(tokens.pop())
                     elif tokens[-1].kind == token_kind['T_VARIABLE_ARGUMENTS']:
                         li.append(tokens.pop())
                         break
             elif tokens[-1].kind == token_kind['T_VARIABLE_ARGUMENTS']:
                 li.append(tokens.pop())
-            else:
-                error_text = "macrofunc_argu - listing"
-                raise AssertionError(error_text)
+            #  else:
+                #  error_text = "macrofunc_argu - listing / line:" + str(tokens[-1].line_nr) \
+                        #  + "  " + tokens[-1].substance + "   " + path
+                #  raise AssertionError(error_text)
 
-            if tokens[-1].kind == token_kind['T_PARENTHESIS_CLOSE']: # list end
+            elif tokens[-1].kind == token_kind['T_PARENTHESIS_CLOSE']: # list end
                 tokens.pop()
             else:
-                error_text = "macrofunc_argu - list end"
+                error_text = "macrofunc_argu - listing / line:" + str(tokens[-1].line_nr) \
+                        + "  " + tokens[-1].substance + "   " + path
                 raise AssertionError(error_text)
+            #  else:
+                #  error_text = "macrofunc_argu - list end"
+                #  raise AssertionError(error_text)
 
             return li
 
@@ -242,6 +276,12 @@ def parse(tokens, file_tag):
                 if tokens[-1].kind == token_kind['T_NEWLINE']:
                     tokens.pop()
                     break
+                elif tokens[-1].kind == token_kind['T_COMMENT_SINGL_LINE']:
+                    tokens.pop()
+                    comment_single()
+                elif tokens[-1].kind == token_kind['T_COMMENT_MULTI_LINE_OPEN']:
+                    tokens.pop()
+                    comment_multiline()
                 elif tokens[-1].kind == token_kind['T_QUOTES_DOUBLE']:
                     tokens.pop()
                     string()
@@ -254,7 +294,8 @@ def parse(tokens, file_tag):
                         tokens.pop()
                     else:
                         error_text = "expression - macro"
-                        raise AssertionError(error_text)
+                        raise AssertionError(error_text + "\n"
+                                            + path + "\n" + str(tokens[-1].line_nr))
                         break
                 else:
                     # TODO: write what is in macro
@@ -266,6 +307,12 @@ def parse(tokens, file_tag):
                 if tokens[-1].kind == token_kind['T_NEWLINE']:
                     tokens.pop()
                     break
+                elif tokens[-1].kind == token_kind['T_COMMENT_SINGL_LINE']:
+                    tokens.pop()
+                    comment_single()
+                elif tokens[-1].kind == token_kind['T_COMMENT_MULTI_LINE_OPEN']:
+                    tokens.pop()
+                    comment_multiline()
                 elif tokens[-1].kind == token_kind['T_QUOTES_DOUBLE']:
                     tokens.pop()
                     string()
@@ -289,6 +336,12 @@ def parse(tokens, file_tag):
                 if tokens[-1].kind == token_kind['T_NEWLINE']:
                     tokens.pop()
                     break
+                elif tokens[-1].kind == token_kind['T_COMMENT_SINGL_LINE']:
+                    tokens.pop()
+                    comment_single()
+                elif tokens[-1].kind == token_kind['T_COMMENT_MULTI_LINE_OPEN']:
+                    tokens.pop()
+                    comment_multiline()
                 elif tokens[-1].kind == token_kind['T_QUOTES_DOUBLE']:
                     tokens.pop()
                     string()
@@ -311,6 +364,12 @@ def parse(tokens, file_tag):
                 if tokens[-1].kind == token_kind['T_NEWLINE']:
                     tokens.pop()
                     break
+                elif tokens[-1].kind == token_kind['T_COMMENT_SINGL_LINE']:
+                    tokens.pop()
+                    comment_single()
+                elif tokens[-1].kind == token_kind['T_COMMENT_MULTI_LINE_OPEN']:
+                    tokens.pop()
+                    comment_multiline()
                 elif tokens[-1].kind == token_kind['T_QUOTES_DOUBLE']:
                     tokens.pop()
                     string()
@@ -337,24 +396,34 @@ def parse(tokens, file_tag):
 
 
     def ppifdef(line_nr):
-        if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
+                and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
             scope = PreprocessScope(path=file_tag, scope=scope_stack[-1], start=line_nr)
             scope.condition = [tok.substance, 1, "=="]
             scope_stack.append(scope)
+            expression("pass")
         else:
             error_text = "ppifdef"
-            raise AssertionError(error_text)
+            raise AssertionError(error_text + "\n"
+                                + path + "\n" + str(tokens[-1].line_nr))
+            #  raise AssertionError(error_text)
 
     def ppifndef(line_nr):
-        if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
+        if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
+                and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
             scope = PreprocessScope(path=file_tag, scope=scope_stack[-1], start=line_nr)
             scope.condition = [tok.substance, 1, "!="]
             scope_stack.append(scope)
+            expression("pass")
         else:
             error_text = "ppifndef"
-            raise AssertionError(error_text)
+            raise AssertionError(error_text + "\n"
+                                + path + "\n" + str(tokens[-1].line_nr))
+            #  raise AssertionError(error_text)
 
     def ppif(line_nr):
         expr = expression("ppif")
@@ -372,6 +441,7 @@ def parse(tokens, file_tag):
         scope.pre_associator = pre_scope
         scope_stack.append(scope)
         included_scope.append(pre_scope)
+        #  print(pre_scope)
 
         
     def ppelse(line_nr):
@@ -382,11 +452,15 @@ def parse(tokens, file_tag):
         scope.pre_associator = pre_scope
         scope_stack.append(scope)
         included_scope.append(pre_scope)
+        expression("pass")
+        #  print(pre_scope)
 
     def ppendif(line_nr):
         pre_scope = scope_stack.pop()
         pre_scope.line[1] = line_nr - 1
         included_scope.append(pre_scope)
+        expression("pass")
+        #  print(pre_scope)
         
 
     return start()

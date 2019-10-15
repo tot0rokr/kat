@@ -64,7 +64,7 @@ from kat.tracer.tokenlib import *
 
 
 
-def scan(rawdata):
+def scan(rawdata, path):
     tokens = []
     debug = ""
     line_cnt = 0
@@ -76,6 +76,7 @@ def scan(rawdata):
 
     preprocesses = []
 
+    multi_com = False
     lines = ""
     for line in rawdata.split('\n'):
         line_cnt += 1           # line count
@@ -83,12 +84,37 @@ def scan(rawdata):
             tmp += 1            # for counting two or more of lines
             lines += line + "\n" # add newline escape key because of split('\n')
             continue
+        elif multi_com == True:
+            #  print(str(line_cnt) + line)
+            #  if re.compile(r"\*/").search(line) is None:
+            if "*/" in line:
+                #  print(str(line_cnt) + " */ : " + line)
+                line_nr = line_cnt - tmp
+                tmp = 0
+                lines += line
+                multi_com = False
+            else :
+                #  print(str(line_cnt) + " until comment : " + line)
+                tmp += 1
+                lines += line + "\n"
+                continue
+        elif re.compile(r"(\"[^\"]*\")*/\*([^*]/|[^/])*$").search(line) is not None:
+            # one line macro & multi line comment
+            #  print(str(line_cnt) + line)
+            tmp += 1
+            lines += line + "\n"
+            multi_com = True
+            continue
         else:
             line_nr = line_cnt - tmp    # line number of preprocess
             tmp = 0
             lines += line
 
         lines += "\n"
+
+        #  print(line_nr)
+        #  print(line)
+        #  print(lines)
         matchedString = preprocess.match(lines) # make matchedString as preprocess
                                                 # about lines
         lines = ""                              # re-initialize 0
@@ -98,18 +124,27 @@ def scan(rawdata):
 
         key = [matchedString.group(2), matchedString.group(3)]
         if key[0] == "include":
-            matchedString = re.compile('[ \t]?([<"])(.*)[>"]').search(key[1])
-
-            if matchedString.group(1) == "<":
+            matchedString = re.compile('[ \t]*([<"])(.*)[>"]').search(key[1])
+            #  if matchedString is None:
+                #  raise AssertionError("ppscanner: "+path + str(line_nr) + " " + key[1] + " ")
+            #  if matchedString.group(1) is None:
+                #  raise AssertionError("ppscanner: "+path + str(line_nr) + " " + key[1] + " ")
+            #  try:
+            if matchedString is not None and matchedString.group(1) == "<":
                 token = Token(line=lines, line_nr=line_nr
                         , substance=matchedString.group(2), kind=token_kind["T_INCLUDE_STD_H"])
                 tokens.append(token)
-            elif matchedString.group(1) == '"':
+            elif matchedString is not None and matchedString.group(1) == '"':
                 token = Token(line=lines, line_nr=line_nr
                         , substance=matchedString.group(2), kind=token_kind["T_INCLUDE_USR_H"])
                 tokens.append(token)
             else:
-                raise AssertionError("ppscanner: include")
+                token = Token(line=lines, line_nr=line_nr
+                        , substance=key[1], kind=token_kind["T_INCLUDE_MACRO"])
+                tokens.append(token)
+                #  raise AssertionError("ppscanner: include")
+            #  except:
+                #  raise AssertionError("ppscanner: "+ path + str(line_nr) + " " + key[1] + " ")
             token = Token(token_kind["T_NEWLINE"])
             tokens.append(token)
 
@@ -141,7 +176,7 @@ def scan(rawdata):
             continue
         elif key[0] == "define":
             key[0] = "macro"
-            matchedString = re.compile('define[ \t]+[A-Za-z_][A-Za-z_0-9]*\(').match(key[1])
+            matchedString = re.compile('define[ \t]+[A-Za-z_][A-Za-z_0-9]*\(').match(matchedString.group(1))
             if matchedString is not None:
                 key[0] = "macrofunc"
 
@@ -168,10 +203,14 @@ def scan(rawdata):
             for outer_it in range(len(regex)):
                 matched_string = regex[outer_it].match(text)
                 if matched_string is not None:
+                    #  if line_nr == 221:
+                        #  print(matched_string.group() + " outer_it : " + token_kind_index[outer_it])
                     if outer_it == 0:
                         text = text[matched_string.end():]
                         success = True
                         break
+                    if outer_it == token_kind['T_PREPROCESS']:
+                        continue
                     substance = matched_string.group()
                     kind = outer_it
                     if outer_it == token_kind['T_IDENTIFIER']:
@@ -182,6 +221,8 @@ def scan(rawdata):
                                     and inner_matched_string.group() == matched_string.group():
                                 kind = inner_it
                                 break
+                    #  if line_nr == 221:
+                        #  print(matched_string.group() + " kind : " + token_kind_index[kind])
                     text = text[matched_string.end():]
                     token = Token(kind=kind, line_nr=line_nr, substance=substance)
                     tokens.append(token)
@@ -190,12 +231,15 @@ def scan(rawdata):
             if success is True:
                 continue
 
-            print("outer_it : ", outer_it)
-            print("inner_it : ", inner_it)
+            error_text = "file : " + path + " line_nr : " + str(line_nr) \
+                    + " outer_it : " + token_kind_index[outer_it] \
+                    + " inner_it : " + token_kind_index[inner_it]
             if substance is not None:
-                print("substance : ", substance)
-            print("line_nr : ", line_nr)
-            raise AssertionError("ppascanner.py")
+                error_text += " substance: " + substance
+                #  print("substance : ", substance)
+            #  print("line_nr : ", line_nr)
+            #  raise AssertionError("ppascanner.py")
+            raise AssertionError("ppascanner.py: " + error_text)
 
     return tokens               # scanner test
 

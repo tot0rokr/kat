@@ -22,30 +22,39 @@ regex.append(commentMultiLineClose)
 preprocess = re.compile(r"""
         ^\#                  # prefix
         (
+            [ \t]*
             (
-                [a-z]+              # preprocess word
-                #  include | define | ifndef | ifdef | if | elif | else
-                #  | endif | error | undef | pragma | warning | line
+                #  [a-z]+              # preprocess word
+                include | define | ifndef | ifdef | if | elif | else
+                | endif | error | undef | pragma | warning | line
             ) 
             (
                 (
-                    [ \t]+                  # space
+                    [ \t]+                  # space TOTO: away
                     (
-                        /\*.*\*/            # multi line comment
-                        | ".*"              # string value
-                        | '.'               # charactor value
+                        /\*(.|\n|[^*]/)*\*/            # multi line comment
+                        | "(\\.|.)*"              # string value
+                        | '(\\.|.)'               # charactor value
+                        #  | ".*"          # string value
+                        #  | '.'           # charactor value
+                        | //.*[^\n]
                         | /                 # divisor operator
-                        | [^\\\n"'/]*       # not string and backslash and newline
+                        #  | [^\\\n/]*       # not string and backslash and newline
+                        | [^\\\n'"/]*
                     )+                      # one or more
                     (
                         \\[ \t]*\n          # backslash - several space - newline
                         (
-                            /\*.*\*/        # multi line comment
-                            | ".*"          # string value
-                            | '.'           # charactor value
+                            /\*(.|\n|[^*]/)*\*/        # multi line comment
+                            #  | ".*"          # string value
+                            #  | '.'           # charactor value
+                            | "(\\.|.)*"              # string value
+                            | '(\\.|.)'               # charactor value
+                            | //.*[^\n]
                             | /             # divisor operator
-                            | [^\\\n"'/]*   # not string and backslash and newline
-                        )+                  # one or more
+                            #  | [^\\\n/]*   # not string and backslash and newline
+                            | [^\\\n'"/]*
+                        )*                  # one or more
                     )*                      # zero or more
                 )?                          # zero or one
                 [ \t]*\n                          # last newline
@@ -161,10 +170,12 @@ integer = re.compile(r"""
 regex.append(integer)
 
 # special charactor
-quotesDouble = re.compile("\"")
+quotesDouble = re.compile(r"\"")
 regex.append(quotesDouble)
-quotesSingle = re.compile("\'")
+quotesSingle = re.compile(r"\'")
 regex.append(quotesSingle)
+variable_arguments = re.compile(r"\.\.\.")
+regex.append(variable_arguments)
 operator = re.compile(r"""
         -> | \.                             # member
         | = | \+= | -= | \*= | /= | %=      # assignment
@@ -195,11 +206,17 @@ bracketClose = re.compile(r"\]")
 regex.append(bracketClose)
 semicolon = re.compile(";")
 regex.append(semicolon)
+char_backslash = re.compile(r"\\\\")
+regex.append(char_backslash)
+char_quotes_double = re.compile(r"\\\"")
+regex.append(char_quotes_double)
+char_quotes_single = re.compile(r"\\\'")
+regex.append(char_quotes_single)
 backslash = re.compile(r"\\")
 regex.append(backslash)
 #  newline = re.compile(r"\n")
 etcCharators = re.compile(r"""
-        @ | \#\# | \# | $ | % | ` | ~
+        @ | \#\# | \# | \$ | % | ` | ~
         """, re.VERBOSE)
 regex.append(etcCharators)
 
@@ -246,6 +263,7 @@ token_kind['T_INTEGER'] = it.__next__()
 # special charactor
 token_kind['T_QUOTES_DOUBLE'] = it.__next__()             # "
 token_kind['T_QUOTES_SINGLE'] = it.__next__()             # '
+token_kind['T_VARIABLE_ARGUMENTS'] = it.__next__()        # ...
 token_kind['T_OPERATOR'] = it.__next__()                  # all of operator
 token_kind['T_COMMA'] = it.__next__()                     # ,
 token_kind['T_COLON'] = it.__next__()                     # :
@@ -256,6 +274,9 @@ token_kind['T_BRACE_CLOSE'] = it.__next__()               # }
 token_kind['T_BRACKET_OPEN'] = it.__next__()              # [
 token_kind['T_BRACKET_CLOSE'] = it.__next__()             # ]
 token_kind['T_SEMICOLON'] = it.__next__()                 # ;
+token_kind['T_CHAR_BACKSLASH'] = it.__next__()                 # \\
+token_kind['T_CHAR_QUOTES_DOUBLE'] = it.__next__()                 # \"
+token_kind['T_CHAR_QUOTES_SINGLE'] = it.__next__()                 # \'
 token_kind['T_BACKSLASH'] = it.__next__()                 # \
 token_kind['T_ETC'] = it.__next__()                       # @, ##, #, $, %, `, ~
 
@@ -265,6 +286,7 @@ token_kind['T_LAST'] = it.__next__()
 # preprocess addition
 token_kind['T_INCLUDE_STD_H'] = it.__next__()
 token_kind['T_INCLUDE_USR_H'] = it.__next__()
+token_kind['T_INCLUDE_MACRO'] = it.__next__()
 
 token_kind_index = []
 for it in sorted(token_kind.items(), key=op.itemgetter(1)):

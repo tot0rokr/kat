@@ -2,7 +2,8 @@ from kat.tracer import ppscanner as pps
 from kat.tracer.tokenlib   import *
 #  import re
 
-f = open("test3.h", "r")
+filepath = "test16.c"
+f = open(filepath, "r")
 data = f.read()
 f.close()
 
@@ -11,16 +12,18 @@ f1 = open("testpps.debug", "w")
 #  f2 = open("test.debug2", "w")
 
 for it in regex:
-    print(it)
+    #  print(it)
+    pass
 
 for it in token_kind_index:
-    print(it)
+    #  print(it)
+    pass
 
 
-for it in pps.scan(data):
-    print (it)
+for it in pps.scan(data, filepath):
+    #  print (it)
     if "T_NEWLINE" in it():
-        print("")
+        #  print("")
         f1.write("T_NEWLINE\n")
         continue
     #  if re.compile("T_PREPROCESS|T_INCLUDE").match(it()) is not None:
@@ -29,7 +32,10 @@ for it in pps.scan(data):
         #  print("")
         f1.write(str(it.line_nr) + ": ")
     #  print(it())
-    f1.write(str(it()) + " ")
+    if it.substance is not None:
+        f1.write(str(it())+"("+str(it.substance) + ") ")
+    else:
+        f1.write(str(it()))
 
 f1.close()
 #  f2.close()
