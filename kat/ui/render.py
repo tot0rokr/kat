@@ -8,15 +8,11 @@ prefixHelp = lambda x: "\" " + x
 
 def taglist(tab):
     buf = []
-    buf.append("test")
-    buf.append("taglist")
-    tab.buf_taglist = buf
-
     contents = []
     for it in tab.global_tags:
         contents.append(it.name)
 
-    buf.append(contents)
+    buf += contents
     tab.buf_taglist = buf
     return buf
 

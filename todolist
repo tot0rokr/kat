@@ -30,6 +30,19 @@ cparser
       T_ETC
 
 
+1. .config를 이용해서 config tag를 생성한다.
+
+2. Kernel makefile - script/tag.sh에 의해서 알고있는
+all_target_sources() 를 이용(except drivers directory)해서 모든 file에 대한
+file tag와 해당 file에 해당하는 base scope tag를 생성한다.
+
+3. file tag에 대한 파일에 대해서 모든 preprocess tag를 생성한다.
+	(1). define tag를 생성한다.
+	(2). condition tag를 생성한다.(scope tag 생성)
+	(3). 나머진 일단 무시
+
+4. c언어 코드에 대한 tag를 생성한다.
+
 
 처음 데이터베이스 생성시에 call tag는 생성하지 않고, definition tag만 생성하고
 call indentifier가 존재하는 file만 definition tag에 리스트로 저장한다.
@@ -44,7 +57,17 @@ base scope tag는 file tag를 가르킴
 
 처음 database 생성시에는 file tag, scope tag, definition tag와 preprocess tag만 생성한다.
 
+tag등은 scope tag에 종속된다. 해당 tag가 존재하는 위치보다 더 큰 범위를 감싸는
+scope tag에 종속된다.
 
+preprocess tag
+	define tag는 결과값이 variable인지, constant인지, condition인지, loop인지,
+	(inline) function / procedure 인지만 체크한 후 tag로 생성한다.
+	추후 상수값에 대해서는 결과를 알 수 있도록 한다.
 
-
+	condition tag는 해당 범위에 해당하는 scope tag를 생성하고,
+	config tag를 이용해서 정확히 true / false를 가릴 수 있는
+	경우에만 false tag에 대해서 definition tag를 가린다.(볼 수 있게도 한다.)
 	
+
+생성된 tag는 linker에 의해 이어진다.

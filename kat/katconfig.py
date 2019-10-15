@@ -30,8 +30,23 @@ class Katconfig:
         self.options = data[indexOptions + 1].split("\n")
         self.files = data[indexFiles + 1].split("\n")
         self.kconfigs = data[indexKconfigs + 1].split("\n")
-        self.options.remove("")
-        self.files.remove("")
-        self.kconfigs.remove("")
+        try:
+            while self.options.index("") is not None:
+                self.options.remove("")
+        except ValueError:
+            pass
+        try:
+            while self.files.index("") is not None:
+                self.files.remove("")
+        except ValueError:
+            pass
+        try:
+            while self.kconfigs.index("") is not None:
+                self.kconfigs.remove("")
+        except ValueError:
+            pass
+        #  self.options.remove("")
+        #  self.files.remove("")
+        #  self.kconfigs.remove("")
 
         f.close()

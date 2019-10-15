@@ -12,6 +12,8 @@ from kat.katconfig import Katconfig
 
 import vim
 
+import codecs
+
 def initializeKAT(configPath):
     config = Katconfig(configPath)
     kernel_root_dir = vim.vars['KATRootDir'].decode()
@@ -27,9 +29,17 @@ def initializeKAT(configPath):
     #  files = sorted(files, key=lambda x: x.path)
     katconfig['files'] = files
     
+    i = 0
+    files_nr = len(katconfig['files'])
     for it in katconfig['files']:
+        i += 1
+        print(str(i) + "/" + str(files_nr) + " - " + it.path)
         f = open(kernel_root_dir + '/' + it.path, "r")
-        raw_data = f.read()
+        try:
+            raw_data = f.read()
+        except UnicodeDecodeError:
+            f = codecs.open(kernel_root_dir + '/' + it.path, "r", 'utf-8')
+
         f.close()
         tokens = pps.scan(raw_data)
         it.scope = Scope(it.path, None, 0, 0)
