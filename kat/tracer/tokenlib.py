@@ -140,20 +140,6 @@ typeof = re.compile(r"typeof")
 regex.append(typeof)
 sizeof = re.compile(r"sizeof")
 regex.append(sizeof)
-#  keyword = re.compile(r"""
-        #  (
-            #  #_Atomic   # addition
-            #  #| _Complex
-            #  #| _Generic
-            #  #| _Imaginary
-            #  #| _Noreturn
-            #  #| _Static_assert
-            #  #| _Thread_local
-            #  | sizeof    # sizeof
-            #  | typeof    # typeof # gcc grammar
-            #  #| _Alignof  # alignof
-        #  )
-        #  """, re.VERBOSE)
 
 # Numeric
 floating = re.compile(r"""

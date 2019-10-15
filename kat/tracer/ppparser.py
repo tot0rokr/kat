@@ -33,12 +33,6 @@ def parse(tokens, file_tag):
 
     tokens.append(Token(token_kind['T_LAST']))      # This is only used by last chunk
 
-    #  def shift(from, to, symbol, state):
-        #  to.append(from.pop(0))
-        
-    #  def pop(list):
-        #  list.pop(0)
-
     error_text = None
 
     tokens.reverse()
@@ -71,9 +65,6 @@ def parse(tokens, file_tag):
                 include_files.append(tokens.pop().substance)
 
             elif tokens[-1].kind == token_kind['T_INCLUDE_USR_H']:
-                #  print(path + "Is it exist? " + tokens.pop().substance)
-                #  raise AssertionError("ppparser: include user header: " + path)
-                #  OF COURSE, EXIST
                 include_files.append(tokens.pop().substance)
 
             elif tokens[-1].kind == token_kind['T_INCLUDE_MACRO']:
@@ -125,10 +116,6 @@ def parse(tokens, file_tag):
                 error_text = "error_start"
                 raise AssertionError(error_text + "  : "
                         + path + "  : " + str(tokens[-1].line_nr))
-                #  raise AssertionError("error_start")
-                #  expression("start")
-                #  error_text = "start"
-                #  break
 
     def comment_single():
         while True:
@@ -157,14 +144,12 @@ def parse(tokens, file_tag):
                 break
             else:
                 tok = tokens.pop()
-                if tok is None:
-                    raise AssertionError(token_kind_index[tok.kind] + "  " \
-                            + path + "   ")# + tok.line_nr)
-                    #  raise AssertionError("string_tok_none")
-                if tok.substance is None:
-                    #  raise AssertionError("string_tok_sub_none")
-                    raise AssertionError(token_kind_index[tok.kind] + "  " \
-                            + path + "   ")# + tok.line_nr)
+                #  if tok is None:
+                    #  raise AssertionError(token_kind_index[tok.kind] + "  " \
+                            #  + path + "   ")# + tok.line_nr)
+                #  if tok.substance is None:
+                    #  raise AssertionError(token_kind_index[tok.kind] + "  " \
+                            #  + path + "   ")# + tok.line_nr)
                 data += tok.substance #tokens.pop().substance
         return data
     
@@ -183,7 +168,6 @@ def parse(tokens, file_tag):
         return data
 
     def macro():
-        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
         if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
                 and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
@@ -199,7 +183,6 @@ def parse(tokens, file_tag):
                     + path + "  : " + str(tokens[-1].line_nr))
 
     def macrofunc():
-        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
         if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
                 and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
@@ -216,7 +199,6 @@ def parse(tokens, file_tag):
             raise AssertionError(error_text)
 
     def macroundef():
-        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
         if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
                 and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
@@ -233,13 +215,11 @@ def parse(tokens, file_tag):
         if tokens[-1].kind == token_kind['T_PARENTHESIS_OPEN']:
             tokens.pop()
             li = []
-            #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
             if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
                     and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
                 li.append(tokens.pop())
                 while tokens[-1].kind == token_kind['T_COMMA']:
                     tokens.pop()
-                    #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
                     if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
                             and tokens[-1].kind <= token_kind['T_SIZEOF']:
                         li.append(tokens.pop())
@@ -248,10 +228,6 @@ def parse(tokens, file_tag):
                         break
             elif tokens[-1].kind == token_kind['T_VARIABLE_ARGUMENTS']:
                 li.append(tokens.pop())
-            #  else:
-                #  error_text = "macrofunc_argu - listing / line:" + str(tokens[-1].line_nr) \
-                        #  + "  " + tokens[-1].substance + "   " + path
-                #  raise AssertionError(error_text)
 
             elif tokens[-1].kind == token_kind['T_PARENTHESIS_CLOSE']: # list end
                 tokens.pop()
@@ -259,9 +235,6 @@ def parse(tokens, file_tag):
                 error_text = "macrofunc_argu - listing / line:" + str(tokens[-1].line_nr) \
                         + "  " + tokens[-1].substance + "   " + path
                 raise AssertionError(error_text)
-            #  else:
-                #  error_text = "macrofunc_argu - list end"
-                #  raise AssertionError(error_text)
 
             return li
 
@@ -396,7 +369,6 @@ def parse(tokens, file_tag):
 
 
     def ppifdef(line_nr):
-        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
         if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
                 and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
@@ -408,10 +380,8 @@ def parse(tokens, file_tag):
             error_text = "ppifdef"
             raise AssertionError(error_text + "\n"
                                 + path + "\n" + str(tokens[-1].line_nr))
-            #  raise AssertionError(error_text)
 
     def ppifndef(line_nr):
-        #  if tokens[-1].kind == token_kind['T_IDENTIFIER']:
         if tokens[-1].kind >= token_kind['T_IDENTIFIER'] \
                 and tokens[-1].kind <= token_kind['T_SIZEOF']: # listing
             tok = tokens.pop()
@@ -423,7 +393,6 @@ def parse(tokens, file_tag):
             error_text = "ppifndef"
             raise AssertionError(error_text + "\n"
                                 + path + "\n" + str(tokens[-1].line_nr))
-            #  raise AssertionError(error_text)
 
     def ppif(line_nr):
         expr = expression("ppif")
@@ -441,8 +410,6 @@ def parse(tokens, file_tag):
         scope.pre_associator = pre_scope
         scope_stack.append(scope)
         included_scope.append(pre_scope)
-        #  print(pre_scope)
-
         
     def ppelse(line_nr):
         pre_scope = scope_stack.pop()
@@ -453,14 +420,12 @@ def parse(tokens, file_tag):
         scope_stack.append(scope)
         included_scope.append(pre_scope)
         expression("pass")
-        #  print(pre_scope)
 
     def ppendif(line_nr):
         pre_scope = scope_stack.pop()
         pre_scope.line[1] = line_nr - 1
         included_scope.append(pre_scope)
         expression("pass")
-        #  print(pre_scope)
         
 
     return start()
