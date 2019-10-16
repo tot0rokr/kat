@@ -6,6 +6,51 @@ prefixComment = lambda x: "# " + x
 prefixHelp = lambda x: "\" " + x
 
 
+def explorer_show_tags(tab, string):
+    buf = []
+    global_tags = tab.global_tags
+
+    rootdir = vim.vars['KATRootDir'].decode() + '/'
+    title = "=          KAT-Explorer          ="
+    buf.append(title)
+
+    if string is None:
+        # TODO: string is not tag
+        buf.append("!!!!!  TAG NOT TAKEN  !!!!!")
+    else:
+        tags = []
+        if string in global_tags['curconfig']:
+            tags += global_tags['curconfig'][string]
+        if string in global_tags['preprocess']:
+            tags += global_tags['preprocess'][string]
+
+        if len(tags) == 0:
+            # TODO: can't find any tag
+            buf.append("!!!!! > " + string + " < TAG NOT FOUND !!!!!")
+        elif len(tags) == 1:
+            tag = tags[0]
+            path = tag.path
+            line = tag.line - 1
+            # TODO: The height is height of explorer's window minus one
+            height = 9
+            start = tag.line - (height // 2)
+            with open(rootdir + path, 'r') as f:
+                readlines = f.readlines()[start:start + height]
+            buf += readlines
+        else:
+            padding_nr = len(title) - 6 - len(string)
+            buf.append("=" + " " * (padding_nr // 2) + "> " + string + " <"
+                    + " " * (padding_nr - padding_nr // 2) + "=")
+            for it in tags:
+                path = it.path
+                line = it.line - 1
+                with open(rootdir + path, 'r') as f:
+                    buf.append(path + "|" + str(line) + "| " \
+                            + f.readlines()[line])
+                    tab.matched_explorer[len(buf)] = it
+
+    return buf
+
 def taglist(tab):
     buf = []
     contents = []

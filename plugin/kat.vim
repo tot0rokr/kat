@@ -54,11 +54,14 @@ endfunction
 call s:InitVariable("g:KATUsing", 1)
 call s:InitVariable("g:KATUsingFileTree", 1)
 call s:InitVariable("g:KATUsingTagList", 1)
+call s:InitVariable("g:KATUsingExplorer", 1)
 call s:InitVariable("g:KATCreateDefaultMappings", 1)
 call s:InitVariable("g:KATBufNameFileTree", "=KAT-FileTree=")
-call s:InitVariable("g:KATBufNameTagList", "=KAT-TagList=")
 call s:InitVariable("g:KATFiletypeFileTree", "katfiletree")
-call s:InitVariable("g:KATFiletypeiTagList", "kattaglist")
+call s:InitVariable("g:KATBufNameTagList", "=KAT-TagList=")
+call s:InitVariable("g:KATFiletypeTagList", "kattaglist")
+call s:InitVariable("g:KATBufNameExplorer", "=KAT-Explorer=")
+call s:InitVariable("g:KATFiletypeExplorer", "katexplorer")
 
 if !g:KATUsing
     finish
@@ -77,6 +80,7 @@ python_root_dir = normpath(join(plugin_root_dir, '..'))
 sys.path.insert(0, python_root_dir)
 import kat.ui.tabpage as tp
 import kat.ui.filetree as ft
+import kat.ui.explorer as ep
 import kat.ui.taglist as tl
 import kat.ui.render as rd
 import kat.controller as ctrl
@@ -103,9 +107,13 @@ augroup END
 
 augroup kattaglist
     exec 'autocmd BufEnter ' . g:KATBufNameTagList
-                \ . ' setl filetype=' . g:KATFiletypeiTagList
+                \ . ' setl filetype=' . g:KATFiletypeTagList
 augroup END
 
+augroup katexplorer
+    exec 'autocmd BufEnter ' . g:KATBufNameExplorer
+                \ . ' setl filetype=' . g:KATFiletypeExplorer
+augroup END
 " augroup kattaglist
     " " exec 'autocmd BufLeave '.g:KATBufNameTagList.' setf kattaglist'
 " augroup END
@@ -194,6 +202,36 @@ endfunction
 " search (SrcExpr)
 " KATExplorer
 "
+" Function: s:KATAttachExplorer() function {{{2
+" This function make the Explorer opened if the Explorer is closed.
+" Then if Explorer is closed, it do nothing.
+" 
+function s:KATAttachExplorer()
+    python3 ep.attach()
+endfunction
+
+
+" Function: s:KATDetachExplorer() function {{{2
+" This function make the Explorer closed if the Explorer is opened.
+" Then if Explorer is opened, it do nothing.
+" 
+function s:KATDetachExplorer()
+    python3 ep.detach()
+endfunction
+
+" Function: s:KATToggleExplorer() function {{{2
+" This function make the Explorer closed if the Explorer is opened.
+" Then if the Explorer is opened, oppositely do.
+" 
+function s:KATToggleExplorer()
+    python3 ep.toggle()
+endfunction
+
+" Function: s:KATShowTagExplorer() function {{{2
+" 
+function s:KATShowTagExplorer(num)
+    exec 'python3 ep.show_tag(' . a:num . ')'
+endfunction
 "
 " SECTION: Completion
 "==============================================================================
@@ -217,10 +255,18 @@ function KATEvent(target)
         call s:KATDetachTagList()
     elseif a:target ==? 'ToggleTagList'
         call s:KATToggleTagList()
+    elseif a:target ==? 'AttachExplorer'
+        call s:KATAttachExplorer()
+    elseif a:target ==? 'DetachExplorer'
+        call s:KATDetachExplorer()
+    elseif a:target ==? 'ToggleExplorer'
+        call s:KATToggleExplorer()
     elseif a:target ==? 'FileOpenFileTree'
         call s:KATFileOpenFileTree(line("."))
     elseif a:target ==? 'GotoTagList'
         call s:KATGotoTagList(line("."))
+    elseif a:target ==? 'ShowTagExplorer'
+        call s:KATShowTagExplorer(line("."))
     endif
 endfunction
 
@@ -235,6 +281,7 @@ function s:CreateMaps(target, description, shortcut)
 
     execute 'nnoremap <silent> ' . plug . ' :call KATEvent("' . a:target . '")<CR>'
     execute 'xnoremap <silent> ' . plug . ' :call KATEvent("' . a:target . '")<CR>'
+    execute 'command KAT' . a:target . ' call KATEvent("' . a:target . '")'
     if strlen(a:shortcut)
         if g:KATCreateDefaultMappings && !hasmapto(plug, 'n')
             execute 'nmap <leader>]' . a:shortcut . ' ' . plug
@@ -248,5 +295,11 @@ call s:CreateMaps('ToggleFileTree',   'ToggleFileTree',     'f')
 call s:CreateMaps('AttachTagList',   'AttachTagList',     '')
 call s:CreateMaps('DetachTagList',   'DetachTagList',     '')
 call s:CreateMaps('ToggleTagList',   'ToggleTagList',     't')
+call s:CreateMaps('AttachExplorer',   'AttachExplorer',     '')
+call s:CreateMaps('DetachExplorer',   'DetachExplorer',     '')
+call s:CreateMaps('ToggleExplorer',   'ToggleExplorer',     'e')
 call s:CreateMaps('FileOpenFileTree', 'FileOpenFileTree',    '')
 call s:CreateMaps('GotoTagList', 'GotoTagList',    '')
+call s:CreateMaps('ShowTagExplorer', 'ShowTagExplorer',    's')
+
+
