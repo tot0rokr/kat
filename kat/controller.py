@@ -58,6 +58,6 @@ def initializeKAT(configPath):
 
     TabPage(katconfig)
     ft.preInitialize()
-    tl.preInitialize(pp_tags)
+    tl.preInitialize()
 
 
