@@ -73,7 +73,7 @@ def initializeKAT(configPath):
     #  print(type(global_tags))
 
     ft.preInitialize()
-    #  tl.preInitialize(pp_tags)
+    tl.preInitialize()
     ep.preInitialize()
 
 

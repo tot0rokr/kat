@@ -54,17 +54,17 @@ def explorer_show_tags(tab, string):
 def taglist(tab):
     buf = []
     contents = []
-    for it in tab.global_tags:
-        contents.append(it.name)
+    buf = ["asdasd", "asddasd"]
+    #  for it in tab.global_tags:
+        #  contents.append(it.name)
 
-    buf += contents
+    #  buf += contents
     tab.buf_taglist = buf
     return buf
 
 def makeFileTree(filelist):
     filestack = []
     contents = []
-    #  matched = {}
 
     for it in filelist:                     # iterate with files
         path = it.path.split("/")
@@ -86,13 +86,11 @@ def makeFileTree(filelist):
                             'name': it2,
                             'type': 'd'})
 
-        #  matched[len(contents)] = it
         contents.append({'depth': len(filestack),
                     'name': path[-1],
                     'type': 'f',
                     'path': it})
 
-    #  return contents, matched
     return contents
 
 def filetree(tab):
@@ -150,10 +148,8 @@ def filetree(tab):
     fcomments.append("")
     fcomments = list(map(prefixComment, fcomments))
     buf += fcomments
-    #  buf.append(fcomments)
 
     contents = makeFileTree(tab.katconfig['files'])
-    #  tab.matched['files'] = matched
 
     for it in contents:
         line = "  " * it['depth']
@@ -161,11 +157,8 @@ def filetree(tab):
             line += "▼ "
         elif it['type'] == 'f':
             line += "- "
-            tab.matched[len(buf) + 1] = it['path']
+            tab.matched_filetree[len(buf) + 1] = it['path']
         line += it['name']
-        #  line = "  " * it['depth'] \
-              #  + ("▼ " if it['type'] == 'd' else "- ") \
-              #  + it['name']
         buf.append(line)
 
 
@@ -173,26 +166,16 @@ def filetree(tab):
     kcomments.append("")
     kcomments = list(map(prefixComment, kcomments))
     buf += kcomments
-    #  buf.append(kcomments)
 
     contents = makeFileTree(tab.katconfig['kconfigs'])
-    #  contents, matched = makeFileTree(tab.katconfig['kconfigs'])
-    #  tab.matched['kconfigs'] = matched
-
-        #  line = "  " * it['depth'] \
-              #  + ("▼ " if it['type'] == 'd' else "- ") \
-              #  + it['name']
     for it in contents:
         line = "  " * it['depth']
         if it['type'] == 'd':
             line += "▼ "
         elif it['type'] == 'f':
             line += "- "
-            tab.matched[len(buf) + 1] = it['path']
+            tab.matched_filetree[len(buf) + 1] = it['path']
         line += it['name']
-        #  line = "  " * it['depth'] \
-              #  + ("▼ " if it['type'] == 'd' else "- ") \
-              #  + it['name']
         buf.append(line)
 
     tab.buf_filetree = buf
