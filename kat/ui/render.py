@@ -32,15 +32,16 @@ def explorer_show_tags(tab, string):
             path = tag.path
             line = tag.line - 1
             # TODO: The height is height of explorer's window minus one
-            height = 9
+            height = 7
             start = tag.line - (height // 2)
             with open(rootdir + path, 'r') as f:
                 readlines = f.readlines()[start:start + height]
             buf += readlines
         else:
             padding_nr = len(title) - 6 - len(string)
-            buf.append("=" + " " * (padding_nr // 2) + "> " + string + " <"
-                    + " " * (padding_nr - padding_nr // 2) + "=")
+            buf.pop()
+            buf.append("=" + " " * (padding_nr - padding_nr // 2) + "> "
+                    + string + " <" + " " * (padding_nr - padding_nr // 2) + "=")
             for it in tags:
                 path = it.path
                 line = it.line - 1

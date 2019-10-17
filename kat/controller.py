@@ -13,11 +13,15 @@ from kat.katconfig import Katconfig
 
 import vim
 
-import codecs
+import os.path
+import time
+import pickle
 
 def initializeKAT(configPath):
     config = Katconfig(configPath)
     kernel_root_dir = vim.vars['KATRootDir'].decode()
+    database = kernel_root_dir + '/' + "kat.database"
+    katref = kernel_root_dir + '/' + "kat.ref"
 
     katconfig = {}
 
@@ -32,25 +36,20 @@ def initializeKAT(configPath):
         files.append(File(it, kernel_root_dir + '/'))
     files = sorted(files, key=lambda x: x.path)
     katconfig['files'] = files
-    
-    i = 0
-    files_nr = len(katconfig['files'])
-    for it in katconfig['files']:
-        i += 1
-        print(str(i) + "/" + str(files_nr) + " - " + it.path)
-        filename = kernel_root_dir + '/' + it.path
-        #  with open(filename, "r", encoding="utf-8") as f:
-        with open(filename, "r", encoding="utf-8") as f:
-            try:
-                raw_data = f.read()
-            except UnicodeDecodeError:
-                with open(filename, "r", encoding="iso-8859-1") as f2:
-                    raw_data = f2.read()
-        tokens = pps.scan(raw_data)
-        it.scope = Scope(it.path, None, 0, 0)
-        tags, _, _ = ppp.parse(tokens, it)
-        pp_tags += tags
+   
 
+    # read database
+    if os.path.exists(database):
+        with open(database, "rb") as f:
+            katref_time = pickle.load(f)
+            katref_data = pickle.load(f)
+        if katref_time != time.ctime(os.path.getmtime(katref)):
+            pp_tags = initialize_database(katconfig)
+        else:
+            pp_tags = katref_data
+    else:
+        pp_tags = initialize_database(katconfig)
+    
     #  pp_tags = sorted(pp_tags, key=lambda x: x.path.path)
     for it in pp_tags:
         if it.name in global_tags['preprocess']:
@@ -58,6 +57,7 @@ def initializeKAT(configPath):
         else:
             global_tags['preprocess'][it.name] = [it]
     
+
     #  print("files load success")
 
     kconfigs = []
@@ -76,4 +76,34 @@ def initializeKAT(configPath):
     tl.preInitialize()
     ep.preInitialize()
 
+
+def initialize_database(katconfig):
+    kernel_root_dir = vim.vars['KATRootDir'].decode()
+    database = kernel_root_dir + '/' + "kat.database"
+    katref = kernel_root_dir + '/' + "kat.ref"
+    pp_tags = []
+
+    i = 0
+    files_nr = len(katconfig['files'])
+    for it in katconfig['files']:
+        i += 1
+        print(str(i) + "/" + str(files_nr) + " - " + it.path)
+        filename = kernel_root_dir + '/' + it.path
+        with open(filename, "r", encoding="utf-8") as f:
+            try:
+                raw_data = f.read()
+            except UnicodeDecodeError:
+                with open(filename, "r", encoding="iso-8859-1") as f2:
+                    raw_data = f2.read()
+        tokens = pps.scan(raw_data)
+        it.scope = Scope(it.path, None, 0, 0)
+        tags, _, _ = ppp.parse(tokens, it)
+        pp_tags += tags
+
+    database = kernel_root_dir + '/' + "kat.database"
+    with open(database, "wb") as f:
+        pickle.dump(time.ctime(os.path.getmtime(katref)), f)
+        pickle.dump(pp_tags, f)
+
+    return pp_tags
 

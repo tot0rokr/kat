@@ -15,16 +15,16 @@ def preInitialize():
     tab = tabpages[currentTabpageNumber()]
 
     vim.command("silent new " + nameExplorer)
-    #  buf = vim.current.buffer
-    #  render.explorer(tab)
-    #  buf.append(tab.buf_explorer)
-    #  buf[0] = None
+    vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
     vim.command("silent setl nobuflisted")
+    vim.command("silent setl readonly")
+    vim.command("silent setg swapfile&")
     vim.command("silent setg buftype&")
     vim.command("silent setg modifiable&")
     vim.command("silent setg buflisted&")
+    vim.command("silent setg readonly&")
     vim.command("hide")
     
 
@@ -38,7 +38,7 @@ def attach():
 
     tab = tabpages[currentTabpageNumber()]
 
-    vim.command("silent botright 10new " + nameExplorer)
+    vim.command("silent botright 8new " + nameExplorer)
     buf = vim.current.buffer
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
@@ -114,7 +114,7 @@ def get_tag_under_cursor(buf):
     col = int(curpos[2]) - 1
 
     line = buf[lnum]
-    word = re.compile(r"((string|enum|union)[ \t]+)?[A-Za-z_][A-Za-z0-9_]*")
+    word = re.compile(r"((struct|enum|union)[ \t]+)?[A-Za-z_][A-Za-z0-9_]*")
     pos = 0
     while True:
         matched_string = word.search(line[pos:])

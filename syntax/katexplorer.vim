@@ -13,25 +13,28 @@ endif
 
 let b:current_syntax = g:KATFiletypeExplorer
 
-if !exists("g:KATMaxTagDepth")
-    let g:KATMaxTagDepth = 7
-endif
-
-if !exists("g:KATMaxHighlightLineMax")
-    syntax sync minlines=100 maxlines=1000
-else
-    exec 'syntax sync minlines=10 maxlines='.g:KATMaxHighlightLineMax
-endif
-
 syntax clear
 
-" syntax match KATTagListSection /=.*=/ contained
-" highlight link KATTagListSection PreProc
+syntax match KATExplorerTagname />.*</ contained
+highlight link KATExplorerTagname Special
 
-" syntax region KATTagListHelp start=/^\".*/ end=/^[^\"]\+/me=s-1,re=s-1 fold contains=KATTagListSection
-" highlight link KATTagListHelp Constant
+syntax match KATExplorerComment /^=.*=$/ contains=KATExplorerTagname
+highlight link KATExplorerComment Underlined
 
-" syntax match KATTagListComment /#.*/ contains=KATTagListSection
-" highlight link KATTagListComment Comment
+syntax match KATExplorerError /^!!!!!.*!!!!!$/ contains=KATExplorerTagname
+highlight link KATExplorerError Error
+
+syntax match KATExplorerTaglist /^[^ \t]\+|[0-9]\+|.*$/
+            \ contains=KATExplorerFilename,KATExplorerLineNum |",KATExplorerLine
+
+syntax match KATExplorerFilename /^[A-Za-z0-9_/.-]\+|/me=e-1 contained
+            \ nextgroup=KATExplorerLineNum
+highlight link KATExplorerFilename Type
+syntax match KATExplorerLineNum /[0-9]\+|/me=e-1 contained
+highlight link KATExplorerLineNum Statement
+
+
 
 highlight Folded ctermbg=NONE ctermfg=10
+
+runtime! syntax/c.vim  |" C style syntax load
