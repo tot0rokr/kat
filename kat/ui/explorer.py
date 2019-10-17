@@ -32,7 +32,7 @@ def attach():
     if not isUsing():
         return
 
-    number = explorer_window_number()
+    number = window_number('explorer')
     if number != -1:
         return
 
@@ -58,7 +58,7 @@ def detach():
 
     tab = tabpages[currentTabpageNumber()]
 
-    number = explorer_window_number()
+    number = window_number('explorer')
     if number == -1:
         return
     
@@ -70,7 +70,7 @@ def toggle():
 
     tab = tabpages[currentTabpageNumber()]
     
-    number = explorer_window_number()
+    number = window_number('explorer')
     if number == -1:
         attach()
     else:
@@ -86,11 +86,21 @@ def show_tag(numLine):
     buf = vim.current.buffer
     matched_string = get_tag_under_cursor(buf)
 
-    number = explorer_window_number()
+    number = window_number('explorer')
     if number == -1:
         attach()
     else:
         vim.current.window = tab.tabpage.windows[number - 1]
+
+    global_tags = tab.global_tags
+    if matched_string is None:
+        tags = None
+    else:
+        tags = []
+        if matched_string in global_tags['curconfig']:
+            tags += global_tags['curconfig'][matched_string]
+        if matched_string in global_tags['preprocess']:
+            tags += global_tags['preprocess'][matched_string]
 
     buf = vim.current.buffer
 
@@ -98,15 +108,60 @@ def show_tag(numLine):
     vim.command("silent setl modifiable")
     tab.matched_explorer = {} # matched explorer tags
     buf[:] = None
-    buf.append(render.explorer_show_tags(tab, matched_string))
+    buf.append(render.explorer_show_tags(tab, tags, matched_string))
     buf[0] = None
 
     vim.command("silent setl readonly")
     vim.command("silent setl nomodifiable")
             
-def explorer_window_number():
-    tmp = int(vim.eval("bufwinnr(\"" + nameExplorer + "\")"))
-    return tmp
+
+def goto_tag(num_line):
+    if not isUsing():
+        return
+
+    tab = tabpages[currentTabpageNumber()]
+
+    if len(tab.matched_explorer) == 0:
+        return
+    elif len(tab.matched_explorer) == 1:
+        tag = tab.matched_explorer[0] # only one
+    else:
+        if num_line not in tab.matched_explorer:
+            return
+        tag = tab.matched_explorer[num_line]
+
+    name = vim.vars['KATRootDir'].decode() + '/' + str(tag.path)
+
+    vim.command("badd " + name)
+
+    vim.current.window = findSuitableWindowOfNewFile(tab) # window is changed
+    vim.command("buffer " + name)
+
+    vim.command("call cursor(" + str(tag.line) + ", 1)")
+
+def select_tag(num_line):
+    if not isUsing():
+        return
+
+    tab = tabpages[currentTabpageNumber()]
+
+    if num_line not in tab.matched_explorer:
+        return
+    tags = [tab.matched_explorer[num_line]]
+
+    buf = vim.current.buffer
+
+    vim.command("silent setl noreadonly")
+    vim.command("silent setl modifiable")
+    tab.matched_explorer = {} # matched explorer tags
+    buf[:] = None
+    buf.append(render.explorer_show_tags(tab, tags, tags[0].name))
+    buf[0] = None
+
+    vim.command("silent setl readonly")
+    vim.command("silent setl nomodifiable")
+            
+    
 
 def get_tag_under_cursor(buf):
     curpos = vim.eval("getcurpos()")

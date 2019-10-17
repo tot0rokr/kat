@@ -233,6 +233,19 @@ function s:KATShowTagExplorer(num)
     exec 'python3 ep.show_tag(' . a:num . ')'
 endfunction
 "
+" Function: s:KATGotoTagExplorer() function {{{2
+" 
+function s:KATGotoTagExplorer(num)
+    exec 'python3 ep.goto_tag(' . a:num . ')'
+endfunction
+"
+" Function: s:KATSelectTagExplorer() function {{{2
+" 
+function s:KATSelectTagExplorer(num)
+    exec 'python3 ep.select_tag(' . a:num . ')'
+endfunction
+
+"
 " SECTION: Completion
 "==============================================================================
 " completion
@@ -267,6 +280,10 @@ function KATEvent(target)
         call s:KATGotoTagList(line("."))
     elseif a:target ==? 'ShowTagExplorer'
         call s:KATShowTagExplorer(line("."))
+    elseif a:target ==? 'GotoTagExplorer'
+        call s:KATGotoTagExplorer(line("."))
+    elseif a:target ==? 'SelectTagExplorer'
+        call s:KATSelectTagExplorer(line("."))
     endif
 endfunction
 
@@ -301,5 +318,7 @@ call s:CreateMaps('ToggleExplorer',   'ToggleExplorer',     'e')
 call s:CreateMaps('FileOpenFileTree', 'FileOpenFileTree',    '')
 call s:CreateMaps('GotoTagList', 'GotoTagList',    '')
 call s:CreateMaps('ShowTagExplorer', 'ShowTagExplorer',    's')
+call s:CreateMaps('GotoTagExplorer', 'GotoTagExplorer',     '')
+call s:CreateMaps('SelectTagExplorer', 'SelectTagExplorer',     '')
 
 

@@ -32,6 +32,8 @@ def window_number(kind):
         tmp = int(vim.eval("bufwinnr(\"" + nameFileTree + "\")"))
     elif kind == 'taglist':
         tmp = int(vim.eval("bufwinnr(\"" + nameTagList + "\")"))
+    elif kind == 'explorer':
+        tmp = int(vim.eval("bufwinnr(\"" + nameExplorer + "\")"))
     return tmp
 
 
@@ -41,7 +43,8 @@ def findSuitableWindowOfNewFile(tab):
     for w in tab.tabpage.windows:
         filename = w.buffer.name.split("/")[-1]
         if filename != nameFileTree \
-                and filename != nameTagList:
+                and filename != nameTagList \
+                and filename != nameExplorer:
             bufinfo = vim.eval("getbufinfo(winbufnr(" + str(w.number) \
                         + "))[0]")
             if bool(int(bufinfo['hidden'])) is True:
