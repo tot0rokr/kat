@@ -1,7 +1,7 @@
 import os.path
 import time
 class File:
-    def __init__(self, file, rootdir):
+    def __init__(self, file, rootdir=None):
         self.path = file            # str()
         self.information = "None"
         self.scope = None
@@ -9,7 +9,8 @@ class File:
                                     # "usr": user definition
         self.defined_tags = set()    # str()
         self.include_files = set()
-        self.__last_modified = self.get_modified_time(rootdir)
+        if rootdir is not None:
+            self.__last_modified = self.get_modified_time(rootdir)
 
     def __call__(self):
         return self.path
