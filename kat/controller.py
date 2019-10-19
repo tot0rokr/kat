@@ -40,12 +40,15 @@ def initializeKAT(configPath):
 
     # read database
     if os.path.exists(database):
-        with open(database, "rb") as f:
-            katref_time = pickle.load(f)
-            katref_data = pickle.load(f)
+        #  with open(database, "rb") as f:
+        f = open(database, "rb")
+        katref_time = pickle.load(f)
         if katref_time != time.ctime(os.path.getmtime(katref)):
+            f.close()
             pp_tags = initialize_database(katconfig)
         else:
+            katref_data = pickle.load(f)
+            f.close()
             pp_tags = katref_data
     else:
         pp_tags = initialize_database(katconfig)
@@ -107,3 +110,29 @@ def initialize_database(katconfig):
 
     return pp_tags
 
+def initialize_window():
+    pass
+
+def initialize_buffer():
+    kernel_root_dir = vim.vars['KATRootDir'].decode()
+    buf = vim.current.buffer
+    tab = tabpages[currentTabpageNumber()]
+    filename = buf.name
+    files = list(filter(lambda x: x.path in filename, tab.katconfig['files']))
+    if len(files) > 1:
+        raise AssertionError(str(files))
+    elif len(files) <= 0:
+        return
+    else:
+        pass
+    with open(filename, "r", encoding="utf-8") as f:
+        try:
+            raw_data = f.read()
+        except UnicodeDecodeError:
+            with open(filename, "r", encoding="iso-8859-1") as f2:
+                raw_data = f2.read()
+    tokens = pps.scan(raw_data)
+    it = File(filename)
+    it.scope = Scope(it, None, 0, 0)
+    tags, _, _ = ppp.parse(tokens, it)
+    buffers[filename] = Buffer(buf, tags)

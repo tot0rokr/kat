@@ -45,16 +45,32 @@ def explorer_show_tags(tab, tags, string):
 
     return buf
 
-def taglist(tab):
-    buf = []
+def taglist(agent, name):
+    rootdir = vim.vars['KATRootDir'].decode() + '/'
     contents = []
-    buf = ["asdasd", "asddasd"]
-    #  for it in tab.global_tags:
-        #  contents.append(it.name)
+    contents.append(rootdir)
+    contents.append(name.replace(rootdir, ''))
+    contents.append("")
+    contents.append("# =TagList=")
+    contents.append("")
+
+    #  buf = ["asdasd", "asddasd"]
+    for it in agent.local_tags:
+        contents.append(it.name)
+        agent.matched_taglist[len(contents)] = it
 
     #  buf += contents
-    tab.buf_taglist = buf
-    return buf
+    #  for it in contents:
+        #  line = "  " * it['depth']
+        #  if it['type'] == 'd':
+            #  line += "▼ "
+        #  elif it['type'] == 'f':
+            #  line += "- "
+            #  tab.matched_filetree[len(buf) + 1] = it['path']
+        #  line += it['name']
+        #  buf.append(line)
+    agent.buf_taglist = contents
+    #  return buf
 
 def makeFileTree(filelist):
     filestack = []

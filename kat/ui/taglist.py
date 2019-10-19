@@ -15,8 +15,6 @@ def preInitialize():
 
     vim.command("silent new " + nameTagList)
     buf = vim.current.buffer
-    render.taglist(tab)
-    buf.append(tab.buf_taglist)
     buf[0] = None
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
@@ -41,15 +39,6 @@ def attach():
     tab = tabpages[currentTabpageNumber()]
 
     vim.command("silent botright vert 30new " + nameTagList)
-    buf = vim.current.buffer
-    if len(buf) == 1:
-        vim.command("silent setl noreadonly")
-        vim.command("silent setl modifiable")
-        buf.append(tab.buf_taglist)
-        buf[0] = None
-        detach()
-        attach()
-        return
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
@@ -87,6 +76,60 @@ def toggle():
     else:
         detach()
     
+def goto_tag(num_line):
+    if not isUsing():
+        return
 
+    tab = tabpages[currentTabpageNumber()]
 
+    buff = tab.shown_taglist_buff
+    if buff is None:
+        return
+
+    if num_line not in buff.matched_taglist:
+        return
+    tag = buff.matched_taglist[num_line]
+
+    name = vim.vars['KATRootDir'].decode() + '/' + str(tag.path)
+
+    number = window_number(buff.buf.name)
+    if number == -1:
+        return
+    vim.current.window = vim.windows[number - 1]
+
+    vim.command("call cursor(" + str(tag.line) + ", 1)")
+
+def make_taglist_buf(buf, name):
+    render.taglist(buf, name)
+
+def show_taglist_buf():
+    if not isUsing():
+        return
+
+    tab = tabpages[currentTabpageNumber()]
+
+    buf = vim.current.buffer
+    if buf.name not in buffers:
+        return
+    buff = buffers[buf.name]
+    make_taglist_buf(buff, buf.name)
+
+    taglist_winnr = window_number('taglist')
+    if taglist_winnr == -1:
+        return
+
+    taglist_bufnr = buffer_number('taglist')
+
+    taglist_buf = vim.buffers[taglist_bufnr]
+    taglist_buf.options['readonly'] = False
+    taglist_buf.options['modifiable'] = True
+
+    taglist_buf[:] = None
+    taglist_buf.append(buff.buf_taglist)
+    taglist_buf[0] = None
+
+    taglist_buf.options['readonly'] = True
+    taglist_buf.options['modifiable'] = False
+
+    tab.shown_taglist_buff = buff
 

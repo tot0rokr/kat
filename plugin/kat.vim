@@ -108,6 +108,8 @@ augroup END
 augroup kattaglist
     exec 'autocmd BufEnter ' . g:KATBufNameTagList
                 \ . ' setl filetype=' . g:KATFiletypeTagList
+    autocmd BufRead *.[chS] :python3 ctrl.initialize_buffer()
+    autocmd BufEnter *.[chS] :python3 tl.show_taglist_buf()
 augroup END
 
 augroup katexplorer
@@ -276,6 +278,10 @@ function KATEvent(target)
         call s:KATToggleExplorer()
     elseif a:target ==? 'FileOpenFileTree'
         call s:KATFileOpenFileTree(line("."))
+    " elseif a:target ==? 'ShowTagList'
+    " autocmd BufWinEnter *.[chS] :python3 tl.show_taglist_buf(vim.current.buffer)
+        " python3 tl.show_taglist_buf(buf)
+        " call s:KATGotoTagList(line("."))
     elseif a:target ==? 'GotoTagList'
         call s:KATGotoTagList(line("."))
     elseif a:target ==? 'ShowTagExplorer'
@@ -316,6 +322,7 @@ call s:CreateMaps('AttachExplorer',   'AttachExplorer',     '')
 call s:CreateMaps('DetachExplorer',   'DetachExplorer',     '')
 call s:CreateMaps('ToggleExplorer',   'ToggleExplorer',     'e')
 call s:CreateMaps('FileOpenFileTree', 'FileOpenFileTree',    '')
+" call s:CreateMaps('ShowTagList', 'ShowTagList',    '')
 call s:CreateMaps('GotoTagList', 'GotoTagList',    '')
 call s:CreateMaps('ShowTagExplorer', 'ShowTagExplorer',    's')
 call s:CreateMaps('GotoTagExplorer', 'GotoTagExplorer',     '')
