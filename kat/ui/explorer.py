@@ -89,8 +89,8 @@ def show_tag(numLine):
     number = window_number('explorer')
     if number == -1:
         attach()
-    else:
-        vim.current.window = tab.tabpage.windows[number - 1]
+
+    explorer_bufnr = buffer_number('explorer')
 
     global_tags = tab.global_tags
     if matched_string is None:
@@ -102,17 +102,17 @@ def show_tag(numLine):
         if matched_string in global_tags['preprocess']:
             tags += global_tags['preprocess'][matched_string]
 
-    buf = vim.current.buffer
+    explorer_buf = vim.buffers[explorer_bufnr]
 
-    vim.command("silent setl noreadonly")
-    vim.command("silent setl modifiable")
+    explorer_buf.options['readonly'] = False
+    explorer_buf.options['modifiable'] = True
     tab.matched_explorer = {} # matched explorer tags
-    buf[:] = None
-    buf.append(render.explorer_show_tags(tab, tags, matched_string))
-    buf[0] = None
+    explorer_buf[:] = None
+    explorer_buf.append(render.explorer_show_tags(tab, tags, matched_string))
+    explorer_buf[0] = None
 
-    vim.command("silent setl readonly")
-    vim.command("silent setl nomodifiable")
+    explorer_buf.options['readonly'] = True
+    explorer_buf.options['modifiable'] = False
             
 
 def goto_tag(num_line):
