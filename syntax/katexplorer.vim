@@ -37,4 +37,4 @@ highlight link KATExplorerLineNum Statement
 
 highlight Folded ctermbg=NONE ctermfg=10
 
-runtime! syntax/c.vim  |" C style syntax load
+runtime! syntax/c.vim|" C style syntax load
