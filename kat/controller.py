@@ -31,12 +31,22 @@ def initializeKAT(configPath):
     cc_tags = []
     pp_tags = []
 
+
+    with open(kernel_root_dir + '/.config', "r") as f:
+        raw_data = f.read()
+    tokens = ccs.scan(raw_data)
+    cc_tags = ccp.parse(tokens)
+    for it in cc_tags:
+        if it.name in global_tags['curconfig']:
+            global_tags['curconfig'][it.name].append(it)
+        else:
+            global_tags['curconfig'][it.name] = [it]
+
     files = []
     for it in config.files:
         files.append(File(it, kernel_root_dir + '/'))
     files = sorted(files, key=lambda x: x.path)
     katconfig['files'] = files
-   
 
     # read database
     if os.path.exists(database):
