@@ -94,7 +94,8 @@ EOF
 "==============================================================================
 augroup kat
     " autocmd VimEnter,TabNew *.c,*.h,*.asm :python3 tp.TabPage()
-    autocmd VimEnter,TabNew * :python3 ctrl.initializeKAT(vim.eval("g:KATConfigPath"))
+    autocmd VimEnter * :python3 ctrl.initializeKAT(vim.eval("g:KATConfigPath"))
+    autocmd TabNew * :python3 ctrl.initialize_tab()
 augroup END
 
 augroup katfiletree

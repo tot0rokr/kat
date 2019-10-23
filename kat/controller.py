@@ -17,17 +17,18 @@ import os.path
 import time
 import pickle
 
+katconfig = {}
+
+global_tags = {}
+global_tags['preprocess'] = {}
+global_tags['curconfig'] = {}
+
 def initializeKAT(configPath):
     config = Katconfig(configPath)
     kernel_root_dir = vim.vars['KATRootDir'].decode()
     database = kernel_root_dir + '/' + "kat.database"
     katref = kernel_root_dir + '/' + "kat.ref"
 
-    katconfig = {}
-
-    global_tags = {}
-    global_tags['preprocess'] = {}
-    global_tags['curconfig'] = {}
     cc_tags = []
     pp_tags = []
 
@@ -69,8 +70,6 @@ def initializeKAT(configPath):
             global_tags['preprocess'][it.name].append(it)
         else:
             global_tags['preprocess'][it.name] = [it]
-    
-
     #  print("files load success")
 
     kconfigs = []
@@ -78,9 +77,13 @@ def initializeKAT(configPath):
         kconfigs.append(File(it, vim.vars['KATRootDir'].decode() + '/'))
     kconfigs = sorted(kconfigs, key=lambda x: x.path)
     katconfig['kconfigs'] = kconfigs
-
     #  print("kconfigs load success")
+    vim.vars['CompletedLoad'] = True
+    initialize_tab()
 
+def initialize_tab():
+    if vim.vars['CompletedLoad'] == 0:
+        return
     tab = TabPage(katconfig, global_tags)
     vim.current.tabpage.vars['tabid'] = tab.tabpageNumber
     #  print(type(tabpages[currentTabpageNumber()].global_tags))
@@ -90,7 +93,6 @@ def initializeKAT(configPath):
     tl.preInitialize()
     ep.preInitialize()
 
-    vim.vars['CompletedLoad'] = True
     initialize_buffer()
     tl.show_taglist_buf()
 
