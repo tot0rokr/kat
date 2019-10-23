@@ -89,6 +89,9 @@ def initializeKAT(configPath):
     tl.preInitialize()
     ep.preInitialize()
 
+    vim.vars['CompletedLoad'] = True
+    initialize_buffer()
+    tl.show_taglist_buf()
 
 def initialize_database(katconfig):
     kernel_root_dir = vim.vars['KATRootDir'].decode()
@@ -124,6 +127,8 @@ def initialize_window():
     pass
 
 def initialize_buffer():
+    if vim.vars['CompletedLoad'] == 0:
+        return
     kernel_root_dir = vim.vars['KATRootDir'].decode()
     buf = vim.current.buffer
     tab = tabpages[currentTabpageNumber()]

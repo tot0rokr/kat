@@ -105,6 +105,8 @@ def make_taglist_buf(buf, name):
 def show_taglist_buf():
     if not isUsing():
         return
+    if vim.vars['CompletedLoad'] == 0:
+        return
 
     tab = tabpages[currentTabpageNumber()]
 

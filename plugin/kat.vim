@@ -67,6 +67,9 @@ if !g:KATUsing
     finish
 endif
 
+let g:CompletedLoad = 0
+
+
 
 
 " SECTION: load python {{{2
