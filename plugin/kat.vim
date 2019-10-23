@@ -114,6 +114,9 @@ augroup kattaglist
                 \ . ' setl filetype=' . g:KATFiletypeTagList
     autocmd BufRead *.[chS] :python3 ctrl.initialize_buffer()
     autocmd BufEnter *.[chS] :python3 tl.show_taglist_buf()
+    " autocmd BufEnter *.[chS] :python3 tl.load_state()
+    " exec 'autocmd BufLeave ' . g:KATBufNameTagList . '[0-9]*'
+                " \ . ' :python3 tl.store_state()'
 augroup END
 
 augroup katexplorer

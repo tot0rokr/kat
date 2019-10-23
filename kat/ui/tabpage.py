@@ -1,6 +1,7 @@
 import vim
 import kat.ui.render
 from kat.katconfig import Katconfig
+import re
 
 nameFileTree = vim.eval("g:KATBufNameFileTree")
 nameTagList = vim.eval("g:KATBufNameTagList")
@@ -59,10 +60,13 @@ class TabPage: # This must be initialized by controller when VimEnter or
 
 
 
-    def findSuitableWindowOfNewFile(self):
+    def findSuitableWindowOfNewFile(self, filename):
         tab = self
         current = vim.current.window
         window = None
+        number = tab.window_number(filename)
+        if number != -1:
+            return tab.tabpage.windows[number - 1]
         for w in tab.tabpage.windows:
             filename = w.buffer.name.split("/")[-1]
             if filename != self.namefiletree \
@@ -94,6 +98,26 @@ class Buffer:
         self.buf_taglist = []
         self.local_tags = tags
         self.matched_taglist = {}
+        #  self.cursor = {} # it is made each tabpage
+        #  self.taglist_cursor = (1, 0)
 
 
 
+def get_tag_under_cursor(buf):
+    curpos = vim.eval("getcurpos()")
+    lnum = int(curpos[1]) - 1
+    col = int(curpos[2]) - 1
+
+    line = buf[lnum]
+    word = re.compile(r"((struct|enum|union)[ \t]+)?[A-Za-z_][A-Za-z0-9_]*")
+    pos = 0
+    while True:
+        matched_string = word.search(line[pos:])
+        if matched_string is None:
+            return None
+        elif matched_string.start() <= col - pos \
+                and col - pos < matched_string.end():
+            return matched_string.group()
+        else:
+            pos += matched_string.end()
+    

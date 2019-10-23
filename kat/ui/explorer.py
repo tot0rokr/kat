@@ -3,7 +3,6 @@ import sys
 import kat.lib.error as err
 from kat.ui.tabpage import *
 import kat.ui.render as render
-import re
 
 def isUsing():
     return bool(int(vim.vars['KATUsingExplorer']))
@@ -138,7 +137,7 @@ def goto_tag(num_line):
 
     vim.command("badd " + name)
 
-    vim.current.window = tab.findSuitableWindowOfNewFile() # window is changed
+    vim.current.window = tab.findSuitableWindowOfNewFile(name) # window is changed
     vim.command("buffer " + name)
 
     vim.command("call cursor(" + str(tag.line) + ", 1)")
@@ -167,21 +166,3 @@ def select_tag(num_line):
             
     
 
-def get_tag_under_cursor(buf):
-    curpos = vim.eval("getcurpos()")
-    lnum = int(curpos[1]) - 1
-    col = int(curpos[2]) - 1
-
-    line = buf[lnum]
-    word = re.compile(r"((struct|enum|union)[ \t]+)?[A-Za-z_][A-Za-z0-9_]*")
-    pos = 0
-    while True:
-        matched_string = word.search(line[pos:])
-        if matched_string is None:
-            return None
-        elif matched_string.start() <= col - pos \
-                and col - pos < matched_string.end():
-            return matched_string.group()
-        else:
-            pos += matched_string.end()
-    

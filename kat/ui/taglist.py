@@ -100,7 +100,7 @@ def goto_tag(num_line):
         return
     vim.current.window = vim.windows[number - 1]
 
-    vim.command("call cursor(" + str(tag.line) + ", 1)")
+    vim.current.window.cursor = (tag.line, 0)
 
 def make_taglist_buf(buf, name):
     render.taglist(buf, name)
@@ -137,4 +137,53 @@ def show_taglist_buf():
     taglist_buf.options['modifiable'] = False
 
     tab.shown_taglist_buff = buff
+
+    #  load_state()
+
+#  def load_state():
+    #  if not isUsing():
+        #  return
+    #  if vim.vars['CompletedLoad'] == 0:
+        #  return
+
+    #  tab = tabpages[currentTabpageNumber()]
+
+    #  buf = vim.current.buffer
+    #  if buf.name not in buffers:
+        #  return
+    #  buff = buffers[buf.name]
+
+    #  number = tab.window_number('taglist')
+    #  if number == -1:
+        #  return
+    #  taglist_win = tab.tabpage.windows[number - 1]
+
+    #  taglist_win.cursor = buff.taglist_cursor
+
+    #  taglist_win.vars['target'] = buf.name
+    #  print("load" + str(buff.taglist_cursor))
+
+#  def store_state():
+    #  if not isUsing():
+        #  return
+    #  if vim.vars['CompletedLoad'] == 0:
+        #  return
+
+    #  tab = tabpages[currentTabpageNumber()]
+
+    #  number = tab.window_number('taglist')
+    #  if number == -1:
+        #  print("storeerror tag " + str(taglist_win.cursor))
+        #  return
+    #  taglist_win = tab.tabpage.windows[number - 1]
+
+    #  bufname = taglist_win.vars['target']
+
+    #  if bufname not in buffers:
+        #  print("storeerror" + str(taglist_win.cursor))
+        #  return
+    #  buff = buffers[bufname]
+
+    #  buff.taglist_cursor = taglist_win.cursor
+    #  print("store" + str(taglist_win.cursor))
 

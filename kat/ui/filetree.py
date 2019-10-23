@@ -103,7 +103,7 @@ def openFile(numLine):
     name = vim.vars['KATRootDir'].decode() + '/' + tab.matched_filetree[numLine].path
     vim.command("badd " + name)
 
-    vim.current.window = tab.findSuitableWindowOfNewFile() # window is changed
+    vim.current.window = tab.findSuitableWindowOfNewFile(name) # window is changed
     vim.command("buffer " + name)
     
             
