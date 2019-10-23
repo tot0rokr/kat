@@ -81,7 +81,8 @@ def initializeKAT(configPath):
 
     #  print("kconfigs load success")
 
-    TabPage(katconfig, global_tags)
+    tab = TabPage(katconfig, global_tags)
+    vim.current.tabpage.vars['tabid'] = tab.tabpageNumber
     #  print(type(tabpages[currentTabpageNumber()].global_tags))
     #  print(type(global_tags))
 
@@ -133,6 +134,8 @@ def initialize_buffer():
     buf = vim.current.buffer
     tab = tabpages[currentTabpageNumber()]
     filename = buf.name
+    if filename in buffers:
+        return
     files = list(filter(lambda x: x.path in filename, tab.katconfig['files']))
     if len(files) > 1:
         raise AssertionError(str(files))

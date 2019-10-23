@@ -13,7 +13,7 @@ def preInitialize():
 
     tab = tabpages[currentTabpageNumber()]
 
-    vim.command("silent new " + nameFileTree)
+    vim.command("silent new " + tab.namefiletree)
     buf = vim.current.buffer
     render.filetree(tab)
     buf.append(tab.buf_filetree)
@@ -35,13 +35,15 @@ def attach():
     if not isUsing():
         return
 
-    number = window_number('filetree')
+    tab = tabpages[currentTabpageNumber()]
+
+    number = tab.window_number('filetree')
     if number != -1:
         return
 
-    tab = tabpages[currentTabpageNumber()]
+    current = vim.current.window
 
-    vim.command("silent topleft vert 30new " + nameFileTree)
+    vim.command("silent topleft vert 30new " + tab.namefiletree)
     buf = vim.current.buffer
     if len(buf) == 1:
         vim.command("silent setl noreadonly")
@@ -62,6 +64,7 @@ def attach():
     vim.command("silent setg buflisted&")
     vim.command("silent setg readonly&")
 
+    vim.current.window = current
 
 def detach():
     if not isUsing():
@@ -69,7 +72,7 @@ def detach():
 
     tab = tabpages[currentTabpageNumber()]
 
-    number = window_number('filetree')
+    number = tab.window_number('filetree')
     if number == -1:
         return
     
@@ -81,7 +84,7 @@ def toggle():
 
     tab = tabpages[currentTabpageNumber()]
     
-    number = window_number('filetree')
+    number = tab.window_number('filetree')
     if number == -1:
         attach()
     else:
@@ -100,7 +103,7 @@ def openFile(numLine):
     name = vim.vars['KATRootDir'].decode() + '/' + tab.matched_filetree[numLine].path
     vim.command("badd " + name)
 
-    vim.current.window = findSuitableWindowOfNewFile(tab) # window is changed
+    vim.current.window = tab.findSuitableWindowOfNewFile() # window is changed
     vim.command("buffer " + name)
     
             

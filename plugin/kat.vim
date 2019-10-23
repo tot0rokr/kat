@@ -99,7 +99,7 @@ augroup END
 
 augroup katfiletree
     " autocmd BufNewFile,BufRead =KAT-FileTree= setf katfiletree
-    exec 'autocmd BufEnter ' . g:KATBufNameFileTree
+    exec 'autocmd BufEnter ' . g:KATBufNameFileTree . '[0-9]*'
                 \ . ' setl filetype=' . g:KATFiletypeFileTree
     " exec 'autocmd FileType '.g:KATFiletypeFileTree
                 " \ . ' source ' . s:plugin_root_dir . '/lib/kat/key_map.vim'
@@ -109,14 +109,14 @@ augroup katfiletree
 augroup END
 
 augroup kattaglist
-    exec 'autocmd BufEnter ' . g:KATBufNameTagList
+    exec 'autocmd BufEnter ' . g:KATBufNameTagList . '[0-9]*'
                 \ . ' setl filetype=' . g:KATFiletypeTagList
     autocmd BufRead *.[chS] :python3 ctrl.initialize_buffer()
     autocmd BufEnter *.[chS] :python3 tl.show_taglist_buf()
 augroup END
 
 augroup katexplorer
-    exec 'autocmd BufEnter ' . g:KATBufNameExplorer
+    exec 'autocmd BufEnter ' . g:KATBufNameExplorer . '[0-9]*'
                 \ . ' setl filetype=' . g:KATFiletypeExplorer
 augroup END
 " augroup kattaglist

@@ -14,7 +14,7 @@ def preInitialize():
 
     tab = tabpages[currentTabpageNumber()]
 
-    vim.command("silent new " + nameExplorer)
+    vim.command("silent new " + tab.nameexplorer)
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
@@ -32,13 +32,16 @@ def attach():
     if not isUsing():
         return
 
-    number = window_number('explorer')
+    tab = tabpages[currentTabpageNumber()]
+
+    number = tab.window_number('explorer')
     if number != -1:
         return
 
-    tab = tabpages[currentTabpageNumber()]
+    current = vim.current.window
 
-    vim.command("silent botright 8new " + nameExplorer)
+
+    vim.command("silent botright 8new " + tab.nameexplorer)
     buf = vim.current.buffer
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
@@ -51,6 +54,7 @@ def attach():
     vim.command("silent setg buflisted&")
     vim.command("silent setg readonly&")
 
+    vim.current.window = current
 
 def detach():
     if not isUsing():
@@ -58,7 +62,7 @@ def detach():
 
     tab = tabpages[currentTabpageNumber()]
 
-    number = window_number('explorer')
+    number = tab.window_number('explorer')
     if number == -1:
         return
     
@@ -70,7 +74,7 @@ def toggle():
 
     tab = tabpages[currentTabpageNumber()]
     
-    number = window_number('explorer')
+    number = tab.window_number('explorer')
     if number == -1:
         attach()
     else:
@@ -86,11 +90,11 @@ def show_tag(numLine):
     buf = vim.current.buffer
     matched_string = get_tag_under_cursor(buf)
 
-    number = window_number('explorer')
+    number = tab.window_number('explorer')
     if number == -1:
         attach()
 
-    explorer_bufnr = buffer_number('explorer')
+    explorer_bufnr = tab.buffer_number('explorer')
 
     global_tags = tab.global_tags
     if matched_string is None:
@@ -134,7 +138,7 @@ def goto_tag(num_line):
 
     vim.command("badd " + name)
 
-    vim.current.window = findSuitableWindowOfNewFile(tab) # window is changed
+    vim.current.window = tab.findSuitableWindowOfNewFile() # window is changed
     vim.command("buffer " + name)
 
     vim.command("call cursor(" + str(tag.line) + ", 1)")

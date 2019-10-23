@@ -7,13 +7,17 @@ nameTagList = vim.eval("g:KATBufNameTagList")
 nameExplorer = vim.eval("g:KATBufNameExplorer")
 
 def currentTabpageNumber():
-    return vim.eval('tabpagenr()')
+    return vim.current.tabpage.vars['tabid']
+    #  return vim.eval('tabpagenr()')
 
 tabpages = {}       # global tabpages. 
 buffers = {}        # global buffers.
-class TabPage:
+class TabPage: # This must be initialized by controller when VimEnter or
+               # TabNew events occurred.
+    nr = 0
     def __init__(self, katconfig, global_tags):
-        self.tabpageNumber = currentTabpageNumber()
+        TabPage.nr += 1
+        self.tabpageNumber = TabPage.nr
         self.tabpage = vim.current.tabpage
         self.katconfig = katconfig
         self.buf_filetree = []      # buf contents
@@ -23,8 +27,66 @@ class TabPage:
         self.matched_filetree = {}  # what is matched between files and filetree
         self.matched_explorer = {}  # if multiple tags are matched this is made.
                                     # otherwise, this is empty.
+        self.namefiletree = nameFileTree + str(TabPage.nr)
+        self.nametaglist = nameTagList + str(TabPage.nr)
+        self.nameexplorer = nameExplorer + str(TabPage.nr)
         self.helplen = 0
         tabpages[self.tabpageNumber] = self
+
+    def window_number(self, kind):
+        tmp = None
+        if kind == 'filetree':
+            tmp = int(vim.eval("bufwinnr(\"" + self.namefiletree + "\")"))
+        elif kind == 'taglist':
+            tmp = int(vim.eval("bufwinnr(\"" + self.nametaglist + "\")"))
+        elif kind == 'explorer':
+            tmp = int(vim.eval("bufwinnr(\"" + self.nameexplorer + "\")"))
+        else:
+            tmp = int(vim.eval("bufwinnr(\"" + kind + "\")"))
+        return tmp
+
+    def buffer_number(self, kind):
+        tmp = None
+        if kind == 'filetree':
+            tmp = int(vim.eval("bufnr(\"" + self.namefiletree + "\")"))
+        elif kind == 'taglist':
+            tmp = int(vim.eval("bufnr(\"" + self.nametaglist + "\")"))
+        elif kind == 'explorer':
+            tmp = int(vim.eval("bufnr(\"" + self.nameexplorer + "\")"))
+        else:
+            tmp = int(vim.eval("bufnr(\"" + kind + "\")"))
+        return tmp
+
+
+
+    def findSuitableWindowOfNewFile(self):
+        tab = self
+        current = vim.current.window
+        window = None
+        for w in tab.tabpage.windows:
+            filename = w.buffer.name.split("/")[-1]
+            if filename != self.namefiletree \
+                    and filename != self.nametaglist \
+                    and filename != self.nameexplorer:
+                bufinfo = vim.eval("getbufinfo(winbufnr(" + str(w.number) \
+                            + "))[0]")
+                if bool(int(bufinfo['hidden'])) is True:
+                    continue
+                if bool(int(bufinfo['listed'])) is False:
+                    continue
+                if bool(int(bufinfo['loaded'])) is False:
+                    continue
+                if window is None:
+                    window = w
+                if bool(int(bufinfo['changed'])) is False:
+                    window = w
+                    return window
+        if window is not None:
+            vim.current.window = window
+        vim.command("silent bo vert new")
+        window = vim.current.window
+        vim.current.window = current
+        return window
 
 class Buffer:
     def __init__(self, buf, tags): # vim.buffer
@@ -35,56 +97,3 @@ class Buffer:
 
 
 
-def window_number(kind):
-    tmp = None
-    if kind == 'filetree':
-        tmp = int(vim.eval("bufwinnr(\"" + nameFileTree + "\")"))
-    elif kind == 'taglist':
-        tmp = int(vim.eval("bufwinnr(\"" + nameTagList + "\")"))
-    elif kind == 'explorer':
-        tmp = int(vim.eval("bufwinnr(\"" + nameExplorer + "\")"))
-    else:
-        tmp = int(vim.eval("bufwinnr(\"" + kind + "\")"))
-    return tmp
-
-def buffer_number(kind):
-    tmp = None
-    if kind == 'filetree':
-        tmp = int(vim.eval("bufnr(\"" + nameFileTree + "\")"))
-    elif kind == 'taglist':
-        tmp = int(vim.eval("bufnr(\"" + nameTagList + "\")"))
-    elif kind == 'explorer':
-        tmp = int(vim.eval("bufnr(\"" + nameExplorer + "\")"))
-    else:
-        tmp = int(vim.eval("bufnr(\"" + kind + "\")"))
-    return tmp
-
-
-
-def findSuitableWindowOfNewFile(tab):
-    backupWindow = vim.current.window
-    window = None
-    for w in tab.tabpage.windows:
-        filename = w.buffer.name.split("/")[-1]
-        if filename != nameFileTree \
-                and filename != nameTagList \
-                and filename != nameExplorer:
-            bufinfo = vim.eval("getbufinfo(winbufnr(" + str(w.number) \
-                        + "))[0]")
-            if bool(int(bufinfo['hidden'])) is True:
-                continue
-            if bool(int(bufinfo['listed'])) is False:
-                continue
-            if bool(int(bufinfo['loaded'])) is False:
-                continue
-            if window is None:
-                window = w
-            if bool(int(bufinfo['changed'])) is False:
-                window = w
-                return window
-    if window is not None:
-        vim.current.window = window
-    vim.command("silent bo vert new")
-    window = vim.current.window
-    vim.current.window = backupWindow
-    return window

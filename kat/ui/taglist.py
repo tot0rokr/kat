@@ -13,7 +13,7 @@ def preInitialize():
 
     tab = tabpages[currentTabpageNumber()]
 
-    vim.command("silent new " + nameTagList)
+    vim.command("silent new " + tab.nametaglist)
     buf = vim.current.buffer
     buf[0] = None
     vim.command("silent setl noswapfile")
@@ -32,13 +32,15 @@ def attach():
     if not isUsing():
         return
 
-    number = window_number('taglist')
+    tab = tabpages[currentTabpageNumber()]
+
+    number = tab.window_number('taglist')
     if number != -1:
         return
 
-    tab = tabpages[currentTabpageNumber()]
+    current = vim.current.window
 
-    vim.command("silent botright vert 30new " + nameTagList)
+    vim.command("silent botright vert 30new " + tab.nametaglist)
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
@@ -50,6 +52,7 @@ def attach():
     vim.command("silent setg buflisted&")
     vim.command("silent setg readonly&")
 
+    vim.current.window = current
 
 
 def detach():
@@ -58,7 +61,7 @@ def detach():
 
     tab = tabpages[currentTabpageNumber()]
     
-    number = window_number('taglist')
+    number = tab.window_number('taglist')
     if number == -1:
         return
     
@@ -70,7 +73,7 @@ def toggle():
 
     tab = tabpages[currentTabpageNumber()]
     
-    number = window_number('taglist')
+    number = tab.window_number('taglist')
     if number == -1:
         attach()
     else:
@@ -92,7 +95,7 @@ def goto_tag(num_line):
 
     name = vim.vars['KATRootDir'].decode() + '/' + str(tag.path)
 
-    number = window_number(buff.buf.name)
+    number = tab.window_number(buff.buf.name)
     if number == -1:
         return
     vim.current.window = vim.windows[number - 1]
@@ -116,11 +119,11 @@ def show_taglist_buf():
     buff = buffers[buf.name]
     make_taglist_buf(buff, buf.name)
 
-    taglist_winnr = window_number('taglist')
+    taglist_winnr = tab.window_number('taglist')
     if taglist_winnr == -1:
         return
 
-    taglist_bufnr = buffer_number('taglist')
+    taglist_bufnr = tab.buffer_number('taglist')
 
     taglist_buf = vim.buffers[taglist_bufnr]
     taglist_buf.options['readonly'] = False
