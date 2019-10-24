@@ -40,12 +40,14 @@ def attach():
 
     current = vim.current.window
 
-    vim.command("silent botright vert 30new " + tab.nametaglist)
+    vim.command("exec \'silent botright vert \' . g:KATSizeTagList . \'new " + tab.nametaglist + "\'")
+    vim.command("silent setl winfixwidth")
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
     vim.command("silent setl nobuflisted")
     vim.command("silent setl readonly")
+    vim.command("silent setg winfixwidth&")
     vim.command("silent setg swapfile&")
     vim.command("silent setg buftype&")
     vim.command("silent setg modifiable&")

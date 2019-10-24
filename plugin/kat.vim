@@ -50,7 +50,7 @@ function s:InitVariable(var, value)
     return 0
 endfunction
 
-" SECTION: variable initialization {{{2
+" SECTION: variable default initialization {{{2
 call s:InitVariable("g:KATUsing", 1)
 call s:InitVariable("g:KATUsingFileTree", 1)
 call s:InitVariable("g:KATUsingTagList", 1)
@@ -62,6 +62,9 @@ call s:InitVariable("g:KATBufNameTagList", "=KAT-TagList=")
 call s:InitVariable("g:KATFiletypeTagList", "kattaglist")
 call s:InitVariable("g:KATBufNameExplorer", "=KAT-Explorer=")
 call s:InitVariable("g:KATFiletypeExplorer", "katexplorer")
+call s:InitVariable("g:KATSizeFileTree", 30)
+call s:InitVariable("g:KATSizeTagList", 30)
+call s:InitVariable("g:KATSizeExplorer", 8)
 
 if !g:KATUsing
     finish

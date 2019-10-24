@@ -43,7 +43,7 @@ def attach():
 
     current = vim.current.window
 
-    vim.command("silent topleft vert 30new " + tab.namefiletree)
+    vim.command("exec \'silent topleft vert \' . g:KATSizeFileTree . \'new " + tab.namefiletree + "\'")
     buf = vim.current.buffer
     if len(buf) == 1:
         vim.command("silent setl noreadonly")
@@ -53,11 +53,13 @@ def attach():
         detach()
         attach()
         return
+    vim.command("silent setl winfixwidth")
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
     vim.command("silent setl nobuflisted")
     vim.command("silent setl readonly")
+    vim.command("silent setg winfixwidth&")
     vim.command("silent setg swapfile&")
     vim.command("silent setg buftype&")
     vim.command("silent setg modifiable&")

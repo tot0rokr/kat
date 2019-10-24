@@ -40,13 +40,15 @@ def attach():
     current = vim.current.window
 
 
-    vim.command("silent botright 8new " + tab.nameexplorer)
+    vim.command("exec \'silent botright \' . g:KATSizeExplorer . \'new " + tab.nameexplorer + "\'")
     buf = vim.current.buffer
+    vim.command("silent setl winfixheight")
     vim.command("silent setl noswapfile")
     vim.command("silent setl buftype=nofile")
     vim.command("silent setl nomodifiable")
     vim.command("silent setl nobuflisted")
     vim.command("silent setl readonly")
+    vim.command("silent setg winfixheight&")
     vim.command("silent setg swapfile&")
     vim.command("silent setg buftype&")
     vim.command("silent setg modifiable&")

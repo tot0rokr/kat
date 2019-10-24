@@ -47,5 +47,11 @@ for i in range(0, g:KATMaxTagDepth)
 endfor
 exec 'highlight link KATTagListScopeHighLightStart Statement'
 
+syntax match KATTagListTag /[a-z][ a-z]: [A-Za-z0-9_]\+/ contains=KATTagListTagType
+syntax match KATTagListTagType /[a-z][ a-z]: / contained" nextgroup=KATTagListTagName
+" syntax match KATTagListTatName /[A-Za-z0-9_]\+/ contained
+highlight link KATTagListTagType Special
+" highlight link KATTagListTagName Constant
+
 
 highlight Folded ctermbg=NONE ctermfg=10

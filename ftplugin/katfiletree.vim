@@ -18,29 +18,6 @@ function! KATFoldtextFileTree()
     return result
 endfunction
 
-
-
-" key mapping
-
-" for i in range(char2nr("a"), char2nr("z"))
-    " exec 'nnoremap <buffer> ' . nr2char(i) . ' <ESC>'
-    " exec 'nnoremap <buffer> ' . nr2char(i) . nr2char(i) . ' <ESC>'
-" endfor
-" for i in range(char2nr("A"), char2nr("Z"))
-    " exec 'nnoremap <buffer> ' . nr2char(i) . ' <ESC>'
-    " exec 'nnoremap <buffer> ' . nr2char(i) . nr2char(i) . ' <ESC>'
-    " for j in range(char2nr("a"), char2nr("z"))
-        " exec 'nnoremap <buffer> ' . nr2char(i) . nr2char(j) . ' <ESC>'
-        " exec 'nnoremap <buffer> ' . nr2char(j) . nr2char(i) . ' <ESC>'
-    " endfor
-" endfor
-" nnoremap <buffer> [[ <ESC>
-" nnoremap <buffer> ]] <ESC>
-" nnoremap <buffer> [] <ESC>
-" nnoremap <buffer> ][ <ESC>
-" nnoremap <buffer> <CR> <ESC>
-
-
 nmap <buffer> ?     gg<Space>|" help
 nnoremap <buffer> q     :hide<CR>|" quit
 nnoremap <buffer> c     zc|" close

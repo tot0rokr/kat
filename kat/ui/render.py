@@ -55,15 +55,87 @@ def explorer_show_tags(tab, tags, string):
 def taglist(agent, name):
     rootdir = vim.vars['KATRootDir'].decode() + '/'
     contents = []
+
+    comments = []   # help comment 
+    tcomments = []  # tag comment
+    #  kcomments = []  # kconfig comment
+
+    comments.append("Press ?, for help")
+    comments.append("Press ? again, if you")
+    comments.append("want to close |help|")
+    comments.append("")
+    comments.append("= terminate =")
+    comments.append("<kat-prefix>t: toggle")
+    comments.append("q: quit")
+    comments.append("")
+    comments.append("= select tag =")
+    comments.append("<Enter>: goto tag")
+    comments.append("")
+    comments.append("= folding =")
+    comments.append("c: close fold")
+    comments.append("C: recursively close fold")
+    comments.append("o: open fold")
+    comments.append("O: recursively open fold")
+    comments.append("")
+    comments.append("r: reduce a level of fold")
+    comments.append("R: recursively reduce max")
+    comments.append("   level of fold")
+    comments.append("p: expand a level of fold")
+    comments.append("P: recursively expand max")
+    comments.append("   level of fold")
+    comments.append("")
+    comments.append("a: toggle open/close")
+    comments.append("<space>: toggle open/close")
+    comments.append("         as \'a\'")
+    comments.append("A: recursively toggle")
+    comments.append("   open/close")
+    comments.append("")
+    comments.append("= movement =")
+    comments.append("j: next line")
+    comments.append("k: prev line")
+    comments.append("J: last line of current")
+    comments.append("   opened fold")
+    comments.append("K: top line of current")
+    comments.append("   opened fold")
+    comments.append("L: next fold")
+    comments.append("H: prev fold")
+    comments.append("")
+    comments.append("= file type =")
+    comments.append("v : variable")
+    comments.append("ve: external variable")
+    comments.append("f : function")
+    comments.append("m : macro")
+    comments.append("mf: macro function")
+    comments.append("s : struct")
+    comments.append("e : enum")
+    comments.append("u : union")
+    comments.append("t : typedef")
+    comments.append("g : goto label")
+    comments.append("un: undef macro")
+    comments.append("")
+    comments = list(map(prefixHelp, comments))
+    contents += comments
+
     contents.append(rootdir)
     contents.append(name.replace(rootdir, ''))
-    contents.append("")
-    contents.append("# =TagList=")
-    contents.append("")
+    tcomments.append("=Tag List=")
+    tcomments.append("")
+    tcomments = list(map(prefixComment, tcomments))
+    contents += tcomments
 
     #  buf = ["asdasd", "asddasd"]
     for it in agent.local_tags:
-        contents.append(it.name)
+        content = ""
+        if it.type == 'macro':
+            content += "m : "
+        elif it.type == 'macrofunc':
+            content += "mf: "
+        elif it.type == 'undef':
+            content += "un: "
+        else:
+            content += "  : "
+        content += it.name
+        contents.append(content)
         agent.matched_taglist[len(contents)] = it
 
     #  buf += contents
